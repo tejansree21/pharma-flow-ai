@@ -1,5 +1,19 @@
 {
-    "buildCommand": "cd dashboard && npm install && npm run build",
-    "outputDirectory": "dashboard/dist",
-    "framework": null
+  "version": 2,
+  "name": "pharmaflow-dashboard",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
