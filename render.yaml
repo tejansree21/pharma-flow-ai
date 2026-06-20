@@ -1,0 +1,30 @@
+services:
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  - type: web
+    name: pharmaflow-api
+    runtime: python
+    region: oregon          # Free tier region
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python startup.py && uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PROMETHEUS_ENABLED
+        value: "false"          # Disable to save memory on free tier
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: CORS_ORIGINS
+        value: https://pharmaflow-dashboard.vercel.app,http://localhost:5173
+        # ↑ Update with your Vercel URL after deploying dashboard
+      - key: SECRET_KEY
+        generateValue: true     # Render auto-generates a secure value
+      - key: API_KEY
+        generateValue: true     # Auto-generated — copy from Render dashboard

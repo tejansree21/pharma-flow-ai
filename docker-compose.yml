@@ -1,0 +1,101 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PharmaFlow AI — Docker Compose
+# ─────────────────────────────────────────────────────────────────────────────
+# Development:   docker compose up
+# Production:    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pharmaflow-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - API_PORT=8000
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://dashboard
+    volumes:
+      # Mount data + models so changes persist without rebuild
+      - ./data:/app/data
+      - ./models:/app/models
+    networks:
+      - pharmaflow-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── React Dashboard ───────────────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000
+    container_name: pharmaflow-dashboard
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - pharmaflow-net
+
+  # ── Prometheus Monitoring (optional) ─────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: pharmaflow-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    networks:
+      - pharmaflow-net
+    profiles:
+      - monitoring   # Only starts with: docker compose --profile monitoring up
+
+  # ── Grafana Dashboard (optional) ─────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: pharmaflow-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deploy/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - pharmaflow-net
+    profiles:
+      - monitoring
+
+networks:
+  pharmaflow-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

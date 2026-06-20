@@ -1,0 +1,97 @@
+supplier_id,supplier_name,metric,correlation,p_value,significant,bad_trend,direction,num_batches
+SUP001,Aurobindo API Ltd,purity_pct,0.102,0.2237,False,False,increasing,145
+SUP001,Aurobindo API Ltd,contamination_ppm,0.075,0.3711,False,False,increasing,145
+SUP001,Aurobindo API Ltd,dissolution_min,0.072,0.39,False,False,increasing,145
+SUP001,Aurobindo API Ltd,moisture_pct,-0.097,0.2467,False,False,declining,145
+SUP002,Cipla Chemical Works,purity_pct,-0.059,0.4985,False,False,declining,133
+SUP002,Cipla Chemical Works,contamination_ppm,-0.075,0.3934,False,False,declining,133
+SUP002,Cipla Chemical Works,dissolution_min,0.136,0.1191,False,False,increasing,133
+SUP002,Cipla Chemical Works,moisture_pct,0.135,0.1202,False,False,increasing,133
+SUP010,Novartis API GmbH,purity_pct,-0.112,0.2066,False,False,declining,130
+SUP010,Novartis API GmbH,contamination_ppm,0.119,0.1761,False,False,increasing,130
+SUP010,Novartis API GmbH,dissolution_min,0.026,0.7696,False,False,increasing,130
+SUP010,Novartis API GmbH,moisture_pct,0.072,0.4153,False,False,increasing,130
+SUP014,Euroapi France,purity_pct,-0.026,0.8586,False,False,declining,49
+SUP014,Euroapi France,contamination_ppm,0.111,0.4458,False,False,increasing,49
+SUP014,Euroapi France,dissolution_min,0.008,0.9559,False,False,increasing,49
+SUP014,Euroapi France,moisture_pct,0.007,0.9611,False,False,increasing,49
+SUP004,Laurus Labs Synthesis,purity_pct,-0.921,0.0,True,True,declining,93
+SUP004,Laurus Labs Synthesis,contamination_ppm,0.947,0.0,True,True,increasing,93
+SUP004,Laurus Labs Synthesis,dissolution_min,0.783,0.0,True,True,increasing,93
+SUP004,Laurus Labs Synthesis,moisture_pct,0.79,0.0,True,True,increasing,93
+SUP025,Lupin API Division,purity_pct,-0.115,0.2226,False,False,declining,114
+SUP025,Lupin API Division,contamination_ppm,0.131,0.1644,False,False,increasing,114
+SUP025,Lupin API Division,dissolution_min,-0.021,0.828,False,False,declining,114
+SUP025,Lupin API Division,moisture_pct,0.155,0.0986,False,False,increasing,114
+SUP015,Polpharma API Poland,purity_pct,0.039,0.6643,False,False,increasing,124
+SUP015,Polpharma API Poland,contamination_ppm,-0.081,0.3719,False,False,declining,124
+SUP015,Polpharma API Poland,dissolution_min,0.135,0.1336,False,False,increasing,124
+SUP015,Polpharma API Poland,moisture_pct,-0.028,0.7573,False,False,declining,124
+SUP016,Pfizer CentreOne API,purity_pct,-0.192,0.1086,False,False,declining,71
+SUP016,Pfizer CentreOne API,contamination_ppm,0.064,0.5932,False,False,increasing,71
+SUP016,Pfizer CentreOne API,dissolution_min,0.086,0.4777,False,False,increasing,71
+SUP016,Pfizer CentreOne API,moisture_pct,-0.197,0.0997,False,False,declining,71
+SUP009,Shandong Xinhua API,purity_pct,0.058,0.6167,False,False,increasing,76
+SUP009,Shandong Xinhua API,contamination_ppm,-0.101,0.3835,False,False,declining,76
+SUP009,Shandong Xinhua API,dissolution_min,0.031,0.7885,False,False,increasing,76
+SUP009,Shandong Xinhua API,moisture_pct,-0.288,0.0116,True,False,declining,76
+SUP024,Fermion Oy Finland,purity_pct,-0.343,0.1389,False,False,declining,20
+SUP024,Fermion Oy Finland,contamination_ppm,-0.434,0.0558,False,False,declining,20
+SUP024,Fermion Oy Finland,dissolution_min,0.057,0.8104,False,False,increasing,20
+SUP024,Fermion Oy Finland,moisture_pct,-0.039,0.87,False,False,declining,20
+SUP003,Dr Reddy's API Division,purity_pct,0.111,0.2112,False,False,increasing,128
+SUP003,Dr Reddy's API Division,contamination_ppm,0.03,0.7355,False,False,increasing,128
+SUP003,Dr Reddy's API Division,dissolution_min,-0.076,0.3957,False,False,declining,128
+SUP003,Dr Reddy's API Division,moisture_pct,0.129,0.1473,False,False,increasing,128
+SUP013,Lonza Pharma Ingredients,purity_pct,-0.197,0.2793,False,False,declining,32
+SUP013,Lonza Pharma Ingredients,contamination_ppm,-0.034,0.8522,False,False,declining,32
+SUP013,Lonza Pharma Ingredients,dissolution_min,-0.094,0.6072,False,False,declining,32
+SUP013,Lonza Pharma Ingredients,moisture_pct,-0.295,0.1011,False,False,declining,32
+SUP006,Zhejiang Pharma Chemical,purity_pct,0.126,0.1244,False,False,increasing,151
+SUP006,Zhejiang Pharma Chemical,contamination_ppm,-0.001,0.9879,False,False,declining,151
+SUP006,Zhejiang Pharma Chemical,dissolution_min,-0.05,0.5435,False,False,declining,151
+SUP006,Zhejiang Pharma Chemical,moisture_pct,0.059,0.468,False,False,increasing,151
+SUP020,Teva API Israel,purity_pct,-0.175,0.0723,False,False,declining,106
+SUP020,Teva API Israel,contamination_ppm,-0.078,0.4283,False,False,declining,106
+SUP020,Teva API Israel,dissolution_min,0.01,0.9227,False,False,increasing,106
+SUP020,Teva API Israel,moisture_pct,-0.019,0.8473,False,False,declining,106
+SUP005,Divi's Laboratories API,purity_pct,-0.031,0.7072,False,False,declining,148
+SUP005,Divi's Laboratories API,contamination_ppm,0.094,0.2544,False,False,increasing,148
+SUP005,Divi's Laboratories API,dissolution_min,0.091,0.2696,False,False,increasing,148
+SUP005,Divi's Laboratories API,moisture_pct,-0.026,0.757,False,False,declining,148
+SUP011,BASF Pharma Solutions,purity_pct,0.24,0.1645,False,False,increasing,35
+SUP011,BASF Pharma Solutions,contamination_ppm,0.035,0.8439,False,False,increasing,35
+SUP011,BASF Pharma Solutions,dissolution_min,0.042,0.8114,False,False,increasing,35
+SUP011,BASF Pharma Solutions,moisture_pct,0.119,0.4957,False,False,increasing,35
+SUP007,Huahai Pharmaceutical API,purity_pct,-0.365,0.0013,True,True,declining,75
+SUP007,Huahai Pharmaceutical API,contamination_ppm,0.977,0.0,True,True,increasing,75
+SUP007,Huahai Pharmaceutical API,dissolution_min,0.732,0.0,True,True,increasing,75
+SUP007,Huahai Pharmaceutical API,moisture_pct,0.833,0.0,True,True,increasing,75
+SUP008,CSPC Pharma Intermediates,purity_pct,-0.026,0.7647,False,False,declining,135
+SUP008,CSPC Pharma Intermediates,contamination_ppm,0.01,0.9076,False,False,increasing,135
+SUP008,CSPC Pharma Intermediates,dissolution_min,0.008,0.9306,False,False,increasing,135
+SUP008,CSPC Pharma Intermediates,moisture_pct,-0.045,0.6064,False,False,declining,135
+SUP017,Thermo Fisher Pharma,purity_pct,0.341,0.0082,True,False,increasing,59
+SUP017,Thermo Fisher Pharma,contamination_ppm,-0.062,0.6414,False,False,declining,59
+SUP017,Thermo Fisher Pharma,dissolution_min,-0.219,0.0962,False,False,declining,59
+SUP017,Thermo Fisher Pharma,moisture_pct,-0.305,0.0189,True,False,declining,59
+SUP012,Siegfried AG Pharma,purity_pct,-0.156,0.4569,False,False,declining,25
+SUP012,Siegfried AG Pharma,contamination_ppm,-0.19,0.3617,False,False,declining,25
+SUP012,Siegfried AG Pharma,dissolution_min,0.067,0.7505,False,False,increasing,25
+SUP012,Siegfried AG Pharma,moisture_pct,0.013,0.952,False,False,increasing,25
+SUP021,Aspen Pharmacare API,purity_pct,-0.155,0.2782,False,False,declining,51
+SUP021,Aspen Pharmacare API,contamination_ppm,-0.145,0.3102,False,False,declining,51
+SUP021,Aspen Pharmacare API,dissolution_min,0.031,0.8297,False,False,increasing,51
+SUP021,Aspen Pharmacare API,moisture_pct,0.145,0.3094,False,False,increasing,51
+SUP023,Mylan API Japan,purity_pct,-0.143,0.4066,False,False,declining,36
+SUP023,Mylan API Japan,contamination_ppm,-0.248,0.1443,False,False,declining,36
+SUP023,Mylan API Japan,dissolution_min,0.13,0.45,False,False,increasing,36
+SUP023,Mylan API Japan,moisture_pct,-0.137,0.4252,False,False,declining,36
+SUP022,Cristalia Brazil API,purity_pct,-0.877,0.0,True,True,declining,26
+SUP022,Cristalia Brazil API,contamination_ppm,0.979,0.0,True,True,increasing,26
+SUP022,Cristalia Brazil API,dissolution_min,0.775,0.0,True,True,increasing,26
+SUP022,Cristalia Brazil API,moisture_pct,0.779,0.0,True,True,increasing,26
+SUP018,Cambrex API Corp,purity_pct,0.018,0.9602,False,False,increasing,10
+SUP018,Cambrex API Corp,contamination_ppm,0.43,0.2145,False,False,increasing,10
+SUP018,Cambrex API Corp,dissolution_min,-0.079,0.8287,False,False,declining,10
+SUP018,Cambrex API Corp,moisture_pct,-0.297,0.4047,False,False,declining,10

@@ -1,0 +1,26 @@
+id,name,country,city,region,base_reliability,base_quality,price_tier,capacity_tons_year,fda_approved,years_active,specialization,quality_trend,price_multiplier,geo_risk_score,avg_lead_time_days,min_order_kg
+SUP001,Aurobindo API Ltd,India,Hyderabad,Asia,0.82,0.88,low,5000,True,15,generics,stable,0.75,0.35,67,1000
+SUP002,Cipla Chemical Works,India,Mumbai,Asia,0.85,0.9,low,8000,True,22,generics,stable,0.75,0.35,67,2000
+SUP003,Dr Reddy's API Division,India,Hyderabad,Asia,0.88,0.91,low,6000,True,18,generics,stable,0.75,0.35,67,500
+SUP004,Laurus Labs Synthesis,India,Visakhapatnam,Asia,0.78,0.85,low,3000,True,10,generics,declining,0.75,0.35,67,2000
+SUP005,Divi's Laboratories API,India,Hyderabad,Asia,0.9,0.93,medium,7000,True,25,custom_synthesis,stable,1.0,0.35,67,2000
+SUP006,Zhejiang Pharma Chemical,China,Taizhou,Asia,0.75,0.83,lowest,12000,True,12,bulk_api,stable,0.6,0.35,67,250
+SUP007,Huahai Pharmaceutical API,China,Linhai,Asia,0.72,0.8,lowest,15000,False,8,bulk_api,declining,0.6,0.35,67,500
+SUP008,CSPC Pharma Intermediates,China,Shijiazhuang,Asia,0.77,0.84,lowest,10000,True,14,bulk_api,stable,0.6,0.35,67,500
+SUP009,Shandong Xinhua API,China,Zibo,Asia,0.7,0.81,lowest,8000,False,6,bulk_api,stable,0.6,0.35,67,500
+SUP010,Novartis API GmbH,Switzerland,Basel,Europe,0.96,0.97,high,4000,True,30,branded,stable,1.4,0.1,32,2000
+SUP011,BASF Pharma Solutions,Germany,Ludwigshafen,Europe,0.95,0.96,high,6000,True,35,excipients,stable,1.4,0.1,32,1000
+SUP012,Siegfried AG Pharma,Switzerland,Zofingen,Europe,0.94,0.95,high,3000,True,28,custom_synthesis,stable,1.4,0.1,32,500
+SUP013,Lonza Pharma Ingredients,Switzerland,Visp,Europe,0.97,0.98,highest,2500,True,40,biologics,stable,1.8,0.1,32,2000
+SUP014,Euroapi France,France,Paris,Europe,0.92,0.94,high,3500,True,20,branded,stable,1.4,0.1,32,250
+SUP015,Polpharma API Poland,Poland,Starogard,Europe,0.88,0.91,medium,4000,True,16,generics,stable,1.0,0.1,32,1000
+SUP016,Pfizer CentreOne API,USA,Kalamazoo,North America,0.97,0.98,highest,5000,True,45,branded,stable,1.8,0.08,14,250
+SUP017,Thermo Fisher Pharma,USA,Greenville,North America,0.96,0.97,highest,3000,True,30,custom_synthesis,stable,1.8,0.08,14,1000
+SUP018,Cambrex API Corp,USA,East Rutherford,North America,0.93,0.95,high,2000,True,25,custom_synthesis,stable,1.4,0.08,14,2000
+SUP019,Curia Global API,USA,Albany,North America,0.91,0.94,high,2500,True,18,generics,stable,1.4,0.08,14,100
+SUP020,Teva API Israel,Israel,Petah Tikva,Middle East,0.9,0.93,medium,6000,True,35,generics,stable,1.0,0.25,45,1000
+SUP021,Aspen Pharmacare API,South Africa,Durban,Africa,0.83,0.87,medium,2000,True,12,generics,stable,1.0,0.3,57,250
+SUP022,Cristalia Brazil API,Brazil,Itapira,South America,0.8,0.86,medium,1500,False,10,generics,declining,1.0,0.28,50,2000
+SUP023,Mylan API Japan,Japan,Osaka,Asia,0.94,0.96,high,3000,True,20,branded,stable,1.4,0.35,67,1000
+SUP024,Fermion Oy Finland,Finland,Espoo,Europe,0.93,0.95,high,1500,True,22,custom_synthesis,stable,1.4,0.1,32,100
+SUP025,Lupin API Division,India,Pune,Asia,0.84,0.89,low,4000,True,13,generics,stable,0.75,0.35,67,100

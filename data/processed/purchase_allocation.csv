@@ -1,0 +1,37 @@
+drug_id,drug_name,supplier_id,supplier_name,supplier_country,quantity_kg,price_per_kg,raw_cost_usd,risk_score,risk_penalty_usd,total_effective_cost,pct_of_demand,solver
+DRG001,Lisinopril,SUP015,Polpharma API Poland,Poland,1762.8,91.16,160691.16,27.1,38217.5,198908.66,60.0,Greedy
+DRG001,Lisinopril,SUP020,Teva API Israel,Israel,1175.2,91.16,107127.44,27.2,25572.35,132699.79,40.0,Greedy
+DRG002,Amlodipine Besylate,SUP010,Novartis API GmbH,Switzerland,1922.4,163.45,314213.57,10.4,15994.37,330207.94,60.0,Greedy
+DRG002,Amlodipine Besylate,SUP015,Polpharma API Poland,Poland,1281.6,163.45,209475.71,27.1,27785.09,237260.8,40.0,Greedy
+DRG003,Atorvastatin Calcium,SUP016,Pfizer CentreOne API,USA,2080.2,330.83,688186.58,8.8,14644.61,702831.19,60.0,Greedy
+DRG003,Atorvastatin Calcium,SUP010,Novartis API GmbH,Switzerland,1386.8,330.83,458791.05,10.4,11538.18,470329.23,40.0,Greedy
+DRG004,Metformin HCl,SUP015,Polpharma API Poland,Poland,1986.0,40.87,81168.26,27.1,43056.48,124224.74,60.0,Greedy
+DRG004,Metformin HCl,SUP001,Aurobindo API Ltd,India,1324.0,40.87,54112.18,42.6,45121.92,99234.1,40.0,Greedy
+DRG005,Glimepiride,SUP010,Novartis API GmbH,Switzerland,2007.0,411.31,825500.17,10.4,16698.24,842198.41,60.0,Greedy
+DRG005,Glimepiride,SUP014,Euroapi France,France,1338.0,411.31,550333.45,21.6,23120.64,573454.09,40.0,Greedy
+DRG006,Ibuprofen,SUP011,BASF Pharma Solutions,Germany,1670.4,31.81,53127.38,11.0,14699.52,67826.9,60.0,Greedy
+DRG006,Ibuprofen,SUP015,Polpharma API Poland,Poland,1113.6,31.81,35418.25,27.1,24142.85,59561.1,40.0,Greedy
+DRG007,Acetaminophen (Paracetamol),SUP011,BASF Pharma Solutions,Germany,1829.4,23.98,43871.52,11.0,16098.72,59970.24,60.0,Greedy
+DRG007,Acetaminophen (Paracetamol),SUP008,CSPC Pharma Intermediates,China,1219.6,23.98,29247.68,52.7,51418.34,80666.01,40.0,Greedy
+DRG008,Amoxicillin Trihydrate,SUP014,Euroapi France,France,2348.4,78.19,183619.1,21.6,40580.35,224199.45,60.0,Greedy
+DRG008,Amoxicillin Trihydrate,SUP001,Aurobindo API Ltd,India,1565.6,78.19,122412.73,42.6,53355.65,175768.38,40.0,Greedy
+DRG009,Azithromycin,SUP010,Novartis API GmbH,Switzerland,1845.0,181.91,335616.61,10.4,15350.4,350967.01,60.0,Greedy
+DRG009,Azithromycin,SUP020,Teva API Israel,Israel,1230.0,181.91,223744.41,27.2,26764.8,250509.21,40.0,Greedy
+DRG010,Ciprofloxacin HCl,SUP015,Polpharma API Poland,Poland,2024.4,85.58,173244.46,27.1,43888.99,217133.45,60.0,Greedy
+DRG010,Ciprofloxacin HCl,SUP001,Aurobindo API Ltd,India,1349.6,85.58,115496.31,42.6,45994.37,161490.68,40.0,Greedy
+DRG011,Salbutamol Sulfate,SUP016,Pfizer CentreOne API,USA,1972.2,595.15,1173759.5,8.8,13884.29,1187643.79,60.0,Greedy
+DRG011,Salbutamol Sulfate,SUP010,Novartis API GmbH,Switzerland,1314.8,595.15,782506.33,10.4,10939.14,793445.47,40.0,Greedy
+DRG012,Montelukast Sodium,SUP017,Thermo Fisher Pharma,USA,1947.0,896.17,1744834.93,5.6,8722.56,1753557.49,60.0,Greedy
+DRG012,Montelukast Sodium,SUP013,Lonza Pharma Ingredients,Switzerland,1298.0,896.17,1163223.28,11.9,12356.96,1175580.24,40.0,Greedy
+DRG013,Omeprazole,SUP014,Euroapi France,France,1596.6,112.91,180267.66,21.6,27589.25,207856.91,60.0,Greedy
+DRG013,Omeprazole,SUP020,Teva API Israel,Israel,1064.4,112.91,120178.44,27.2,23161.34,143339.79,40.0,Greedy
+DRG014,Pantoprazole Sodium,SUP015,Polpharma API Poland,Poland,1746.6,131.85,230295.24,27.1,37866.29,268161.52,60.0,Greedy
+DRG014,Pantoprazole Sodium,SUP002,Cipla Chemical Works,India,1164.4,131.85,153530.16,45.3,42197.86,195728.01,40.0,Greedy
+DRG015,Sertraline HCl,SUP016,Pfizer CentreOne API,USA,1887.6,508.2,959272.77,8.8,13288.7,972561.47,60.0,Greedy
+DRG015,Sertraline HCl,SUP010,Novartis API GmbH,Switzerland,1258.4,508.2,639515.18,10.4,10469.89,649985.07,40.0,Greedy
+DRG016,Escitalopram Oxalate,SUP017,Thermo Fisher Pharma,USA,1678.2,466.79,783361.73,5.6,7518.34,790880.07,60.0,Greedy
+DRG016,Escitalopram Oxalate,SUP012,Siegfried AG Pharma,Switzerland,1118.8,466.79,522241.15,15.2,13604.61,535845.76,40.0,Greedy
+DRG017,Oseltamivir Phosphate,SUP017,Thermo Fisher Pharma,USA,1821.0,2377.73,4329845.7,5.6,8158.08,4338003.78,60.0,Greedy
+DRG017,Oseltamivir Phosphate,SUP016,Pfizer CentreOne API,USA,1214.0,2377.73,2886563.8,8.8,8546.56,2895110.36,40.0,Greedy
+DRG018,Cetirizine HCl,SUP015,Polpharma API Poland,Poland,1759.8,63.2,111222.29,27.1,38152.46,149374.76,60.0,Greedy
+DRG018,Cetirizine HCl,SUP020,Teva API Israel,Israel,1173.2,63.2,74148.19,27.2,25528.83,99677.03,40.0,Greedy

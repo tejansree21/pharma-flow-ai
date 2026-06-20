@@ -1,0 +1,107 @@
+incident_id,date,supplier_id,supplier_name,incident_type,severity,resolution_days,resolved,description
+INC0009,2021-01-02,SUP003,Dr Reddy's API Division,late_delivery,minor,7,True,Late Delivery at Dr Reddy's API Division
+INC0103,2021-01-06,SUP025,Lupin API Division,late_delivery,minor,4,True,Late Delivery at Lupin API Division
+INC0004,2021-01-09,SUP002,Cipla Chemical Works,geopolitical_disruption,severe,158,True,Geopolitical Disruption at Cipla Chemical Works
+INC0062,2021-01-14,SUP014,Euroapi France,price_dispute,minor,4,True,Price Dispute at Euroapi France
+INC0014,2021-01-31,SUP004,Laurus Labs Synthesis,price_dispute,minor,13,True,Price Dispute at Laurus Labs Synthesis
+INC0101,2021-02-05,SUP025,Lupin API Division,late_delivery,minor,5,True,Late Delivery at Lupin API Division
+INC0097,2021-03-06,SUP024,Fermion Oy Finland,late_delivery,minor,7,True,Late Delivery at Fermion Oy Finland
+INC0092,2021-03-13,SUP023,Mylan API Japan,late_delivery,minor,2,True,Late Delivery at Mylan API Japan
+INC0080,2021-04-24,SUP020,Teva API Israel,quality_complaint,moderate,40,True,Quality Complaint at Teva API Israel
+INC0037,2021-04-25,SUP007,Huahai Pharmaceutical API,geopolitical_disruption,severe,97,True,Geopolitical Disruption at Huahai Pharmaceutical API
+INC0090,2021-05-04,SUP022,Cristalia Brazil API,geopolitical_disruption,severe,80,True,Geopolitical Disruption at Cristalia Brazil API
+INC0055,2021-05-21,SUP009,Shandong Xinhua API,late_delivery,minor,4,True,Late Delivery at Shandong Xinhua API
+INC0091,2021-05-24,SUP022,Cristalia Brazil API,late_delivery,minor,12,True,Late Delivery at Cristalia Brazil API
+INC0001,2021-05-24,SUP001,Aurobindo API Ltd,late_delivery,minor,2,True,Late Delivery at Aurobindo API Ltd
+INC0033,2021-05-31,SUP007,Huahai Pharmaceutical API,fda_warning_letter,severe,169,True,Fda Warning Letter at Huahai Pharmaceutical API
+INC0087,2021-06-04,SUP022,Cristalia Brazil API,quality_complaint,moderate,36,True,Quality Complaint at Cristalia Brazil API
+INC0093,2021-06-08,SUP023,Mylan API Japan,late_delivery,minor,3,True,Late Delivery at Mylan API Japan
+INC0061,2021-06-20,SUP013,Lonza Pharma Ingredients,geopolitical_disruption,severe,117,True,Geopolitical Disruption at Lonza Pharma Ingredients
+INC0051,2021-06-25,SUP009,Shandong Xinhua API,late_delivery,minor,8,True,Late Delivery at Shandong Xinhua API
+INC0011,2021-07-02,SUP003,Dr Reddy's API Division,fda_warning_letter,severe,33,True,Fda Warning Letter at Dr Reddy's API Division
+INC0063,2021-07-28,SUP015,Polpharma API Poland,late_delivery,minor,6,True,Late Delivery at Polpharma API Poland
+INC0045,2021-08-01,SUP008,CSPC Pharma Intermediates,late_delivery,minor,10,True,Late Delivery at CSPC Pharma Intermediates
+INC0034,2021-08-25,SUP007,Huahai Pharmaceutical API,quality_complaint,moderate,31,True,Quality Complaint at Huahai Pharmaceutical API
+INC0085,2021-08-30,SUP022,Cristalia Brazil API,fda_warning_letter,severe,126,True,Fda Warning Letter at Cristalia Brazil API
+INC0076,2021-08-31,SUP018,Cambrex API Corp,quality_complaint,moderate,20,True,Quality Complaint at Cambrex API Corp
+INC0032,2021-08-31,SUP007,Huahai Pharmaceutical API,price_dispute,minor,11,True,Price Dispute at Huahai Pharmaceutical API
+INC0056,2021-09-15,SUP010,Novartis API GmbH,quality_complaint,moderate,43,True,Quality Complaint at Novartis API GmbH
+INC0029,2021-10-01,SUP007,Huahai Pharmaceutical API,quality_complaint,moderate,39,True,Quality Complaint at Huahai Pharmaceutical API
+INC0049,2021-10-07,SUP009,Shandong Xinhua API,late_delivery,minor,6,True,Late Delivery at Shandong Xinhua API
+INC0020,2021-10-09,SUP006,Zhejiang Pharma Chemical,late_delivery,minor,10,True,Late Delivery at Zhejiang Pharma Chemical
+INC0078,2021-10-15,SUP019,Curia Global API,late_delivery,minor,5,True,Late Delivery at Curia Global API
+INC0042,2021-11-07,SUP008,CSPC Pharma Intermediates,late_delivery,minor,9,False,Late Delivery at CSPC Pharma Intermediates
+INC0025,2021-11-15,SUP006,Zhejiang Pharma Chemical,quality_complaint,moderate,25,True,Quality Complaint at Zhejiang Pharma Chemical
+INC0017,2021-11-16,SUP004,Laurus Labs Synthesis,quality_complaint,moderate,35,True,Quality Complaint at Laurus Labs Synthesis
+INC0067,2021-11-27,SUP015,Polpharma API Poland,quality_complaint,moderate,38,True,Quality Complaint at Polpharma API Poland
+INC0065,2021-11-29,SUP015,Polpharma API Poland,late_delivery,minor,13,True,Late Delivery at Polpharma API Poland
+INC0054,2021-12-02,SUP009,Shandong Xinhua API,quality_complaint,moderate,43,True,Quality Complaint at Shandong Xinhua API
+INC0016,2021-12-07,SUP004,Laurus Labs Synthesis,quality_complaint,moderate,13,True,Quality Complaint at Laurus Labs Synthesis
+INC0044,2021-12-29,SUP008,CSPC Pharma Intermediates,capacity_shortage,moderate,33,True,Capacity Shortage at CSPC Pharma Intermediates
+INC0057,2022-01-02,SUP010,Novartis API GmbH,late_delivery,minor,7,True,Late Delivery at Novartis API GmbH
+INC0100,2022-01-09,SUP025,Lupin API Division,price_dispute,minor,5,True,Price Dispute at Lupin API Division
+INC0048,2022-01-11,SUP009,Shandong Xinhua API,quality_complaint,moderate,29,True,Quality Complaint at Shandong Xinhua API
+INC0022,2022-01-19,SUP006,Zhejiang Pharma Chemical,fda_warning_letter,severe,128,True,Fda Warning Letter at Zhejiang Pharma Chemical
+INC0059,2022-01-22,SUP012,Siegfried AG Pharma,quality_complaint,moderate,35,False,Quality Complaint at Siegfried AG Pharma
+INC0024,2022-01-23,SUP006,Zhejiang Pharma Chemical,late_delivery,minor,5,True,Late Delivery at Zhejiang Pharma Chemical
+INC0031,2022-02-16,SUP007,Huahai Pharmaceutical API,capacity_shortage,moderate,26,True,Capacity Shortage at Huahai Pharmaceutical API
+INC0018,2022-02-20,SUP004,Laurus Labs Synthesis,quality_complaint,moderate,26,True,Quality Complaint at Laurus Labs Synthesis
+INC0073,2022-02-23,SUP018,Cambrex API Corp,fda_warning_letter,severe,171,True,Fda Warning Letter at Cambrex API Corp
+INC0074,2022-03-22,SUP018,Cambrex API Corp,late_delivery,minor,9,True,Late Delivery at Cambrex API Corp
+INC0046,2022-03-24,SUP008,CSPC Pharma Intermediates,fda_inspection_failure,severe,81,True,Fda Inspection Failure at CSPC Pharma Intermediates
+INC0023,2022-03-27,SUP006,Zhejiang Pharma Chemical,late_delivery,minor,10,True,Late Delivery at Zhejiang Pharma Chemical
+INC0053,2022-03-29,SUP009,Shandong Xinhua API,late_delivery,minor,9,True,Late Delivery at Shandong Xinhua API
+INC0015,2022-04-04,SUP004,Laurus Labs Synthesis,natural_disaster,severe,63,True,Natural Disaster at Laurus Labs Synthesis
+INC0077,2022-04-12,SUP019,Curia Global API,price_dispute,minor,4,True,Price Dispute at Curia Global API
+INC0088,2022-05-04,SUP022,Cristalia Brazil API,quality_complaint,moderate,26,True,Quality Complaint at Cristalia Brazil API
+INC0105,2022-05-05,SUP025,Lupin API Division,late_delivery,minor,11,True,Late Delivery at Lupin API Division
+INC0005,2022-05-15,SUP002,Cipla Chemical Works,quality_complaint,moderate,19,True,Quality Complaint at Cipla Chemical Works
+INC0008,2022-05-21,SUP002,Cipla Chemical Works,late_delivery,minor,9,True,Late Delivery at Cipla Chemical Works
+INC0041,2022-06-18,SUP008,CSPC Pharma Intermediates,late_delivery,minor,7,True,Late Delivery at CSPC Pharma Intermediates
+INC0003,2022-06-23,SUP001,Aurobindo API Ltd,quality_complaint,moderate,23,True,Quality Complaint at Aurobindo API Ltd
+INC0072,2022-06-25,SUP018,Cambrex API Corp,capacity_shortage,moderate,18,True,Capacity Shortage at Cambrex API Corp
+INC0064,2022-06-30,SUP015,Polpharma API Poland,quality_complaint,moderate,42,True,Quality Complaint at Polpharma API Poland
+INC0084,2022-07-16,SUP022,Cristalia Brazil API,price_dispute,minor,13,True,Price Dispute at Cristalia Brazil API
+INC0098,2022-08-03,SUP024,Fermion Oy Finland,capacity_shortage,moderate,15,True,Capacity Shortage at Fermion Oy Finland
+INC0007,2022-08-28,SUP002,Cipla Chemical Works,late_delivery,minor,13,False,Late Delivery at Cipla Chemical Works
+INC0106,2022-08-31,SUP025,Lupin API Division,late_delivery,minor,8,True,Late Delivery at Lupin API Division
+INC0043,2022-09-03,SUP008,CSPC Pharma Intermediates,late_delivery,minor,7,True,Late Delivery at CSPC Pharma Intermediates
+INC0066,2022-09-12,SUP015,Polpharma API Poland,quality_complaint,moderate,34,True,Quality Complaint at Polpharma API Poland
+INC0094,2022-09-19,SUP024,Fermion Oy Finland,quality_complaint,moderate,39,True,Quality Complaint at Fermion Oy Finland
+INC0058,2022-09-21,SUP011,BASF Pharma Solutions,late_delivery,minor,13,True,Late Delivery at BASF Pharma Solutions
+INC0075,2022-10-16,SUP018,Cambrex API Corp,capacity_shortage,moderate,35,True,Capacity Shortage at Cambrex API Corp
+INC0028,2022-10-23,SUP007,Huahai Pharmaceutical API,late_delivery,minor,7,True,Late Delivery at Huahai Pharmaceutical API
+INC0026,2022-10-26,SUP006,Zhejiang Pharma Chemical,fda_inspection_failure,severe,49,True,Fda Inspection Failure at Zhejiang Pharma Chemical
+INC0039,2022-11-01,SUP007,Huahai Pharmaceutical API,capacity_shortage,moderate,17,True,Capacity Shortage at Huahai Pharmaceutical API
+INC0069,2022-11-10,SUP016,Pfizer CentreOne API,fda_warning_letter,severe,50,True,Fda Warning Letter at Pfizer CentreOne API
+INC0052,2022-12-20,SUP009,Shandong Xinhua API,capacity_shortage,moderate,36,True,Capacity Shortage at Shandong Xinhua API
+INC0070,2023-01-12,SUP017,Thermo Fisher Pharma,late_delivery,minor,6,True,Late Delivery at Thermo Fisher Pharma
+INC0068,2023-01-14,SUP015,Polpharma API Poland,quality_complaint,moderate,14,True,Quality Complaint at Polpharma API Poland
+INC0099,2023-01-23,SUP024,Fermion Oy Finland,fda_warning_letter,severe,83,True,Fda Warning Letter at Fermion Oy Finland
+INC0035,2023-02-01,SUP007,Huahai Pharmaceutical API,late_delivery,minor,12,True,Late Delivery at Huahai Pharmaceutical API
+INC0013,2023-02-14,SUP004,Laurus Labs Synthesis,geopolitical_disruption,severe,157,True,Geopolitical Disruption at Laurus Labs Synthesis
+INC0047,2023-02-17,SUP009,Shandong Xinhua API,fda_warning_letter,severe,79,True,Fda Warning Letter at Shandong Xinhua API
+INC0102,2023-03-13,SUP025,Lupin API Division,fda_warning_letter,severe,150,True,Fda Warning Letter at Lupin API Division
+INC0096,2023-04-07,SUP024,Fermion Oy Finland,quality_complaint,moderate,14,True,Quality Complaint at Fermion Oy Finland
+INC0071,2023-04-29,SUP018,Cambrex API Corp,quality_complaint,moderate,24,True,Quality Complaint at Cambrex API Corp
+INC0060,2023-05-10,SUP012,Siegfried AG Pharma,price_dispute,minor,11,True,Price Dispute at Siegfried AG Pharma
+INC0019,2023-05-21,SUP005,Divi's Laboratories API,fda_inspection_failure,severe,73,False,Fda Inspection Failure at Divi's Laboratories API
+INC0027,2023-07-06,SUP007,Huahai Pharmaceutical API,quality_complaint,moderate,31,True,Quality Complaint at Huahai Pharmaceutical API
+INC0030,2023-07-09,SUP007,Huahai Pharmaceutical API,fda_warning_letter,severe,80,True,Fda Warning Letter at Huahai Pharmaceutical API
+INC0006,2023-07-16,SUP002,Cipla Chemical Works,late_delivery,minor,1,True,Late Delivery at Cipla Chemical Works
+INC0021,2023-07-27,SUP006,Zhejiang Pharma Chemical,natural_disaster,severe,77,True,Natural Disaster at Zhejiang Pharma Chemical
+INC0086,2023-08-04,SUP022,Cristalia Brazil API,late_delivery,minor,9,True,Late Delivery at Cristalia Brazil API
+INC0082,2023-08-09,SUP021,Aspen Pharmacare API,fda_warning_letter,severe,81,True,Fda Warning Letter at Aspen Pharmacare API
+INC0104,2023-08-16,SUP025,Lupin API Division,fda_warning_letter,severe,63,True,Fda Warning Letter at Lupin API Division
+INC0010,2023-08-23,SUP003,Dr Reddy's API Division,late_delivery,minor,1,True,Late Delivery at Dr Reddy's API Division
+INC0089,2023-08-24,SUP022,Cristalia Brazil API,late_delivery,minor,11,True,Late Delivery at Cristalia Brazil API
+INC0095,2023-08-27,SUP024,Fermion Oy Finland,natural_disaster,severe,125,True,Natural Disaster at Fermion Oy Finland
+INC0079,2023-09-12,SUP020,Teva API Israel,capacity_shortage,moderate,27,True,Capacity Shortage at Teva API Israel
+INC0040,2023-09-20,SUP008,CSPC Pharma Intermediates,quality_complaint,moderate,20,True,Quality Complaint at CSPC Pharma Intermediates
+INC0038,2023-09-30,SUP007,Huahai Pharmaceutical API,late_delivery,minor,6,True,Late Delivery at Huahai Pharmaceutical API
+INC0083,2023-10-11,SUP021,Aspen Pharmacare API,quality_complaint,moderate,28,True,Quality Complaint at Aspen Pharmacare API
+INC0036,2023-10-19,SUP007,Huahai Pharmaceutical API,late_delivery,minor,3,True,Late Delivery at Huahai Pharmaceutical API
+INC0002,2023-11-04,SUP001,Aurobindo API Ltd,quality_complaint,moderate,20,False,Quality Complaint at Aurobindo API Ltd
+INC0012,2023-11-16,SUP003,Dr Reddy's API Division,late_delivery,minor,10,True,Late Delivery at Dr Reddy's API Division
+INC0081,2023-12-13,SUP021,Aspen Pharmacare API,price_dispute,minor,4,True,Price Dispute at Aspen Pharmacare API
+INC0050,2023-12-30,SUP009,Shandong Xinhua API,natural_disaster,severe,107,False,Natural Disaster at Shandong Xinhua API

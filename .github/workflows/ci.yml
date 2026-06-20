@@ -1,0 +1,234 @@
+name: PharmaFlow AI — CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_API: ${{ github.repository }}/pharmaflow-api
+  IMAGE_DASHBOARD: ${{ github.repository }}/pharmaflow-dashboard
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 1: Lint & Test (Python API)
+  # ────────────────────────────────────────────────────────────────────────────
+  test-api:
+    name: 🧪 Test API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate synthetic data (required for tests)
+        run: python -c "
+          import sys; sys.path.insert(0, '.');
+          from src.data_generation.synthetic_data import SyntheticDataGenerator;
+          g = SyntheticDataGenerator(); g.generate_all()
+          " || echo "Data generation step skipped"
+
+      - name: Run Phase 2 verification
+        env:
+          ENVIRONMENT: development
+          API_KEY: ""
+        run: python verify_phase2.py
+
+      - name: Test API schema imports
+        run: python -c "from src.api.schemas import *; print('All schemas OK')"
+
+      - name: Test intelligence modules
+        run: |
+          python -c "from src.intelligence.shortage_predictor import ShortagePredictor; print('ShortagePredictor OK')"
+          python -c "from src.intelligence.geopolitical_intelligence import GeopoliticalIntelligence; print('GeoIntel OK')"
+
+      - name: Check API starts without error
+        env:
+          ENVIRONMENT: development
+          API_KEY: ""
+        run: |
+          python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 &
+          sleep 8
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:8000/drugs | python -c "import sys,json; d=json.load(sys.stdin); assert len(d)>0, 'No drugs'"
+          echo "✅ API health check passed"
+          kill %1
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 2: Lint Dashboard
+  # ────────────────────────────────────────────────────────────────────────────
+  test-dashboard:
+    name: 🎨 Test Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build dashboard
+        run: npm run build
+
+      - name: Check build output
+        run: |
+          test -f dist/index.html && echo "✅ index.html present"
+          du -sh dist/ && echo "Build size checked"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 3: Security scan
+  # ────────────────────────────────────────────────────────────────────────────
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install safety + bandit
+        run: pip install safety bandit
+
+      - name: Check for known vulnerabilities
+        run: safety check -r requirements.txt --continue-on-error
+
+      - name: Static security analysis
+        run: bandit -r src/ -ll --exclude .venv -f json -o bandit-report.json || true
+
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-security-report
+          path: bandit-report.txt
+          retention-days: 30
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 4: Build & Push Docker images (main branch only)
+  # ────────────────────────────────────────────────────────────────────────────
+  docker-build:
+    name: 🐳 Build & Push Images
+    needs: [test-api, test-dashboard]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (API)
+        id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_API }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (Dashboard)
+        id: meta-dash
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_DASHBOARD }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build & push Dashboard image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dashboard
+          file: ./dashboard/Dockerfile
+          push: true
+          tags: ${{ steps.meta-dash.outputs.tags }}
+          labels: ${{ steps.meta-dash.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 5: Deploy (Railway / Render — configure secrets in repo settings)
+  # ────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy to Production
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Option A: Deploy to Railway ───────────────────────────────────────
+      # Uncomment and set RAILWAY_TOKEN in repo secrets
+      # - name: Deploy API to Railway
+      #   uses: bervProject/railway-deploy@main
+      #   with:
+      #     railway_token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: pharmaflow-api
+
+      # ── Option B: Deploy to Render ────────────────────────────────────────
+      # Uncomment and set RENDER_DEPLOY_HOOK_URL in repo secrets
+      # - name: Trigger Render deploy
+      #   run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      # ── Option C: SSH deploy to VPS ───────────────────────────────────────
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     username: ${{ secrets.VPS_USER }}
+      #     key: ${{ secrets.VPS_SSH_KEY }}
+      #     script: |
+      #       cd /opt/pharmaflow
+      #       docker compose pull
+      #       docker compose up -d --remove-orphans
+      #       docker system prune -f
+
+      - name: Deployment placeholder
+        run: echo "✅ Build complete — configure deployment in step above"
