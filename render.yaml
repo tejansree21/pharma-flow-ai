@@ -22,8 +22,8 @@ services:
       - key: RATE_LIMIT_PER_MINUTE
         value: "30"
       - key: CORS_ORIGINS
-        value: https://pharmaflow-dashboard.vercel.app,http://localhost:5173
-        # ↑ Update with your Vercel URL after deploying dashboard
+        value: https://pharma-flow-ai.vercel.app,http://localhost:5173
+        # ↑ Must match actual Vercel deployment URL exactly, no trailing slash
       - key: SECRET_KEY
         generateValue: true     # Render auto-generates a secure value
       - key: API_KEY
