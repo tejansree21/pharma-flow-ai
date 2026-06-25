@@ -35,4 +35,7 @@ export const api = {
   predictShortage:   (opts = {}) => post('/predict/shortage', opts),
   optimizePurchase:  (payload = {}) => post('/optimize/purchase', payload),
   optimizeInventory: (payload = {}) => post('/optimize/inventory', payload),
+
+  // Phase 7 — Ask PharmaFlow conversational AI
+  chat: (question, history = []) => post('/chat', { question, history }),
 }

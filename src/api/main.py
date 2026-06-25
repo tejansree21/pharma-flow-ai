@@ -11,7 +11,8 @@ Interactive docs:
     http://localhost:8000/docs   (Swagger UI)
     http://localhost:8000/redoc  (ReDoc)
 """
-
+import os
+import httpx
 import json
 import logging
 import uuid
@@ -805,3 +806,338 @@ async def intelligence_alerts():
     # Sort by score descending
     alerts.sort(key=lambda x: x["score"], reverse=True)
     return {"total_alerts": len(alerts), "alerts": alerts}
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 7: Ask PharmaFlow — Conversational AI Chat Endpoint
+# ═════════════════════════════════════════════════════════════════════════════
+#
+# Add this block at the BOTTOM of main.py, after all existing routes.
+# Also add to your imports at the top of main.py:
+#   import os
+#   import httpx
+#   from .schemas import ChatRequest, ChatResponse, ChatMessage
+#
+# Add ANTHROPIC_API_KEY to your .env and Render environment variables.
+# ═════════════════════════════════════════════════════════════════════════════
+
+import os
+import httpx
+
+from .schemas import ChatRequest, ChatResponse, ChatMessage
+
+# ── Intent keyword classifier ─────────────────────────────────────────────────
+
+_INTENT_MAP = {
+    "risk": [
+        "risk", "risky", "dangerous", "unsafe", "critical",
+        "high risk", "vendor", "supplier score", "audit",
+        "reliable", "worst supplier", "best supplier",
+    ],
+    "forecast": [
+        "price", "forecast", "cost", "cheap", "expensive",
+        "forward buy", "predict", "trend", "going up", "going down",
+        "next week", "next month", "buy now", "wait",
+    ],
+    "shortage": [
+        "shortage", "stockout", "short", "running out",
+        "supply disruption", "unavailable", "critical drug",
+        "at risk", "shortage prediction",
+    ],
+    "inventory": [
+        "inventory", "stock", "reorder", "safety stock",
+        "eoq", "days cover", "how much stock", "order quantity",
+        "running low", "excess", "overstock",
+    ],
+    "geo": [
+        "geopolitical", "country", "region", "political",
+        "trade", "sanctions", "disruption", "port", "china",
+        "india", "brazil", "factory fire", "war", "unrest",
+    ],
+    "optimization": [
+        "optimize", "allocation", "split", "how much to buy",
+        "purchase plan", "order from", "supplier split",
+        "concentration", "diversify",
+    ],
+    "quality": [
+        "quality", "purity", "contamination", "batch",
+        "anomaly", "drift", "recall", "gmp", "fda warning",
+    ],
+    "alerts": [
+        "alert", "warning", "urgent", "attention", "critical",
+        "top risks", "what should i know", "summary",
+    ],
+}
+
+
+def _classify_intent(question: str) -> list[str]:
+    """Return up to 3 matching intent categories for the question."""
+    lower = question.lower()
+    scores: dict[str, int] = {}
+    for intent, keywords in _INTENT_MAP.items():
+        hits = sum(1 for kw in keywords if kw in lower)
+        if hits:
+            scores[intent] = hits
+    if not scores:
+        return ["alerts"]  # default to summary
+    # Return top 3 by hit count
+    return sorted(scores, key=scores.get, reverse=True)[:3]
+
+
+# ── Context builder ───────────────────────────────────────────────────────────
+
+def _build_context(intents: list[str], question: str) -> tuple[str, list[str]]:
+    """
+    Pull relevant pre-computed data from _cache based on detected intents.
+    Returns (context_text, sources_used).
+    Fast: reads from in-memory cache only — no ML recomputation.
+    """
+    parts: list[str] = []
+    sources: list[str] = []
+
+    if "risk" in intents or "alerts" in intents:
+        risk = _cache.get("risk_scores")
+        if risk is not None:
+            top = risk.nlargest(8, "risk_score")[
+                ["supplier_name", "risk_score", "risk_tier"]
+            ].to_dict(orient="records")
+            lines = [f"  - {r['supplier_name']}: {r['risk_score']:.1f}/100 ({r['risk_tier']})" for r in top]
+            parts.append("SUPPLIER RISK SCORES (top 8 by risk):\n" + "\n".join(lines))
+            sources.append("supplier_risk")
+
+    if "forecast" in intents or "alerts" in intents:
+        metrics = _cache.get("forecast_metrics")
+        forecasts = _cache.get("forecasts")
+        drugs = _cache.get("drugs")
+        if metrics is not None and forecasts is not None and drugs is not None:
+            avg_mape = float(metrics["mape"].mean())
+            # Find drugs with price forecast > base price * 1.15
+            spikes = []
+            for _, drug in drugs.iterrows():
+                fc = forecasts[forecasts["drug_id"] == drug["id"]].sort_values("ds")
+                if fc.empty:
+                    continue
+                latest = float(fc["yhat"].iloc[-1])
+                base = float(drug.get("base_price_per_kg", 50))
+                pct = (latest / base - 1) * 100
+                if pct > 10:
+                    spikes.append(f"  - {drug['name']}: ${base:.2f}/kg → ${latest:.2f}/kg forecast (+{pct:.1f}%)")
+            parts.append(
+                f"PRICE FORECAST SUMMARY (avg MAPE: {avg_mape:.1f}%):\n" +
+                ("  No significant price spikes detected." if not spikes else "\n".join(spikes[:8]))
+            )
+            sources.append("price_forecast")
+
+    if "shortage" in intents or "alerts" in intents:
+        try:
+            from ..intelligence.shortage_predictor import ShortagePredictor
+            sp = ShortagePredictor()
+            df = sp.predict_all()
+            at_risk = df[df["risk_tier"].isin(["CRITICAL", "WARNING"])][
+                ["drug_name", "shortage_risk_score", "risk_tier", "recommended_action"]
+            ].head(8)
+            if at_risk.empty:
+                parts.append("SHORTAGE PREDICTION:\n  All drugs currently stable.")
+            else:
+                lines = [
+                    f"  - {r['drug_name']}: score={r['shortage_risk_score']:.0f}/100 "
+                    f"({r['risk_tier']}) → {r['recommended_action']}"
+                    for _, r in at_risk.iterrows()
+                ]
+                parts.append("SHORTAGE PREDICTION (Critical/Warning drugs):\n" + "\n".join(lines))
+            sources.append("shortage_prediction")
+        except Exception as e:
+            log.warning(f"Chat: shortage predictor failed: {e}")
+
+    if "inventory" in intents:
+        try:
+            from ..optimization.inventory_manager import InventoryManager
+            mgr = InventoryManager()
+            inv_df = mgr.compute_recommendations()
+            reorder = inv_df[inv_df["action"].isin(["REORDER_NOW", "REORDER_SOON"])][
+                ["drug_name", "action", "days_cover", "urgency_score"]
+            ].head(8)
+            s = mgr.summary(inv_df)
+            summary_line = (
+                f"Total drugs: {s['total_drugs']} | "
+                f"Reorder now: {s['reorder_now']} | "
+                f"Reorder soon: {s['reorder_soon']} | "
+                f"Avg days cover: {s['avg_days_cover']:.0f} days"
+            )
+            lines = [
+                f"  - {r['drug_name']}: {r['action']} "
+                f"({r['days_cover']:.0f} days cover, urgency {r['urgency_score']:.1f})"
+                for _, r in reorder.iterrows()
+            ]
+            parts.append(
+                f"INVENTORY STATUS:\n  {summary_line}\n" +
+                ("  All inventory adequate." if not lines else "\n".join(lines))
+            )
+            sources.append("inventory_optimization")
+        except Exception as e:
+            log.warning(f"Chat: inventory manager failed: {e}")
+
+    if "geo" in intents:
+        try:
+            from ..intelligence.geopolitical_intelligence import GeopoliticalIntelligence
+            geo = GeopoliticalIntelligence()
+            result = geo.run()
+            s = result["summary"]
+            high_alert = result["supplier_alerts"][
+                result["supplier_alerts"]["alert_level"] == "HIGH"
+            ][["supplier_name", "country", "adjusted_risk_score", "top_event"]].head(6)
+            lines = [
+                f"  - {r['supplier_name']} ({r['country']}): "
+                f"adj risk={r['adjusted_risk_score']:.0f} | {r['top_event'][:80]}"
+                for _, r in high_alert.iterrows()
+            ]
+            parts.append(
+                f"GEOPOLITICAL INTELLIGENCE:\n"
+                f"  Active events: {s['active_events']} | "
+                f"Countries affected: {s['countries_affected']} | "
+                f"Most dangerous: {s['most_dangerous_country']}\n"
+                f"  Suppliers on HIGH alert:\n" +
+                ("\n".join(lines) if lines else "  None currently.")
+            )
+            sources.append("geopolitical_intelligence")
+        except Exception as e:
+            log.warning(f"Chat: geo intelligence failed: {e}")
+
+    if "quality" in intents:
+        quality = _cache.get("quality_results")
+        if quality is not None and "is_anomaly" in quality.columns:
+            total = len(quality)
+            anomalies = int(quality["is_anomaly"].sum())
+            pct = anomalies / total * 100 if total > 0 else 0
+            parts.append(
+                f"QUALITY ANOMALY DETECTION:\n"
+                f"  Total batches checked: {total} | "
+                f"Anomalies flagged: {anomalies} ({pct:.1f}%)\n"
+                f"  Dual-method detection: Isolation Forest + SPC (2-sigma) must both agree for HIGH escalation."
+            )
+            sources.append("quality_anomaly")
+
+    if "optimization" in intents:
+        # Give context about what the optimizer can do without running it
+        risk = _cache.get("risk_scores")
+        drugs = _cache.get("drugs")
+        suppliers = _cache.get("suppliers")
+        if risk is not None and drugs is not None and suppliers is not None:
+            parts.append(
+                f"PURCHASE OPTIMIZATION CONTEXT:\n"
+                f"  Formulary: {len(drugs)} drugs | Approved suppliers: {len(suppliers)}\n"
+                f"  Optimizer: Linear programming (PuLP) — minimizes cost + risk penalty,\n"
+                f"  enforces concentration limit (default: no supplier >60% of any drug's volume).\n"
+                f"  Call POST /optimize/purchase to run a live allocation."
+            )
+            sources.append("purchase_optimization")
+
+    # Always add platform summary
+    drugs = _cache.get("drugs")
+    suppliers = _cache.get("suppliers")
+    risk = _cache.get("risk_scores")
+    if drugs is not None and suppliers is not None:
+        critical = int((risk["risk_tier"] == "Critical").sum()) if risk is not None else "?"
+        high = int((risk["risk_tier"] == "High").sum()) if risk is not None else "?"
+        parts.insert(0,
+            f"PLATFORM OVERVIEW:\n"
+            f"  Formulary: {len(drugs)} drugs | Suppliers: {len(suppliers)} "
+            f"| Critical risk: {critical} | High risk: {high}"
+        )
+
+    context = "\n\n".join(parts) if parts else "No platform data available."
+    return context, list(set(sources))
+
+
+# ── Claude API call ───────────────────────────────────────────────────────────
+
+_SYSTEM_PROMPT = """You are PharmaFlow AI's procurement intelligence assistant — an expert in pharmaceutical supply chain management, bulk drug ingredient sourcing, supplier risk, and regulatory compliance.
+
+You help procurement teams make fast, data-driven decisions. You have access to real-time platform data shown below. Your job is to answer questions by referencing specific numbers, supplier names, and drug names from the data provided.
+
+Rules:
+- Always cite specific data points (scores, percentages, drug names, supplier names)
+- Supplier risk scores are out of 100 (higher = riskier)
+- Shortage risk scores are out of 100 (higher = more likely to run short)
+- Give concrete, actionable recommendations, not generic advice
+- If the question is outside the data provided, say so clearly and suggest what to check
+- Keep answers focused and professional — this is a procurement command center, not a chatbot
+- Never fabricate data points. Only cite what is in the platform data below.
+
+Platform data (current):
+{context}"""
+
+ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
+ANTHROPIC_MODEL   = "claude-sonnet-4-6"
+ANTHROPIC_MAX_TOKENS = 800
+
+
+async def _call_claude(
+    question: str,
+    context: str,
+    history: list[ChatMessage],
+) -> str:
+    """Call the Anthropic Messages API asynchronously via httpx."""
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return (
+            "ANTHROPIC_API_KEY is not set on this server. "
+            "Add it to your Render environment variables to enable the AI chat feature."
+        )
+
+    system = _SYSTEM_PROMPT.format(context=context)
+
+    # Build message list: history + current question
+    messages = []
+    for msg in history[-6:]:  # keep last 6 turns for context window efficiency
+        messages.append({"role": msg.role, "content": msg.content})
+    messages.append({"role": "user", "content": question})
+
+    payload = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": ANTHROPIC_MAX_TOKENS,
+        "system": system,
+        "messages": messages,
+    }
+
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(ANTHROPIC_API_URL, json=payload, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
+            return data["content"][0]["text"]
+    except httpx.TimeoutException:
+        return "The AI took too long to respond. Please try again in a moment."
+    except httpx.HTTPStatusError as e:
+        log.error(f"Anthropic API HTTP error: {e.response.status_code} {e.response.text}")
+        return f"AI service error ({e.response.status_code}). Please try again."
+    except Exception as e:
+        log.error(f"Anthropic API call failed: {e}")
+        return "Failed to reach the AI service. Please check server logs."
+
+
+# ── /chat endpoint ────────────────────────────────────────────────────────────
+
+@app.post("/chat", tags=["Intelligence"])
+async def chat(req: ChatRequest):
+    """
+    Ask PharmaFlow AI a natural language question about your supply chain.
+    Returns an AI-generated answer grounded in live platform data.
+    """
+    intents = _classify_intent(req.question)
+    log.info(f"Chat | intents={intents} | question={req.question[:60]!r}")
+
+    context, sources = _build_context(intents, req.question)
+    answer = await _call_claude(req.question, context, req.history)
+
+    return ChatResponse(
+        answer=answer,
+        sources=sources,
+        intents=intents,
+        model=ANTHROPIC_MODEL,
+    )

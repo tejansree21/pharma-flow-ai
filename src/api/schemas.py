@@ -303,3 +303,31 @@ class GeoIntelligenceResponse(BaseModel):
     top_events: List[GeoEventOut]
     supplier_alerts: List[GeoSupplierAlert]
     country_risk_index: List[CountryRisk]
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 7: Ask PharmaFlow — Conversational AI
+# ═════════════════════════════════════════════════════════════════════════════
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str
+
+
+class ChatRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=1000)
+    history: List[ChatMessage] = Field(
+        default=[],
+        description="Previous conversation turns for multi-turn context.",
+    )
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: List[str] = Field(
+        default=[],
+        description="Data endpoints used to answer this question.",
+    )
+    intents: List[str] = Field(
+        default=[],
+        description="Detected intent categories.",
+    )
+    model: str = "claude-sonnet-4-6"

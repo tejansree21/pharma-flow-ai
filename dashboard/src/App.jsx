@@ -6,6 +6,7 @@ import SupplierRisk from './pages/SupplierRisk'
 import ShortagePredictor from './pages/ShortagePredictor'
 import GeopoliticalIntel from './pages/GeopoliticalIntel'
 import Inventory from './pages/Inventory'
+import AskPharmaFlow from './components/AskPharmaFlow'
 
 // ── Sidebar nav config ────────────────────────────────────────────────────────
 const NAV = [
@@ -18,30 +19,29 @@ const NAV = [
   {
     section: 'Intelligence',
     items: [
-      { id: 'forecast', label: 'Price Forecast', icon: '📈' },
-      { id: 'shortage', label: 'Shortage Predictor', icon: '💊' },
-      { id: 'geo', label: 'Geopolitical Intel', icon: '🌍' },
+      { id: 'forecast',  label: 'Price Forecast',      icon: '📈' },
+      { id: 'shortage',  label: 'Shortage Predictor',  icon: '💊' },
+      { id: 'geo',       label: 'Geopolitical Intel',  icon: '🌍' },
     ]
   },
   {
     section: 'Operations',
     items: [
       { id: 'suppliers', label: 'Supplier Risk', icon: '🏭' },
-      { id: 'inventory', label: 'Inventory', icon: '📦' },
+      { id: 'inventory', label: 'Inventory',     icon: '📦' },
     ]
   },
 ]
 
 const PAGE_TITLES = {
-  overview: { title: 'Supply Chain Dashboard', sub: 'Real-time intelligence across all modules' },
-  forecast: { title: 'Price Forecast', sub: 'Prophet model · 16-week horizon · External regressors' },
-  shortage: { title: 'Shortage Predictor', sub: 'Multi-signal composite risk scoring · 5 intelligence factors' },
-  geo: { title: 'Geopolitical Intelligence', sub: 'Event feed · Country risk index · Supplier geo overlay' },
-  suppliers: { title: 'Supplier Risk Registry', sub: 'XGBoost composite scoring · 4 risk dimensions' },
-  inventory: { title: 'Inventory Management', sub: 'Safety stock · EOQ · Reorder point analysis' },
+  overview:  { title: 'Supply Chain Dashboard',    sub: 'Real-time intelligence across all modules' },
+  forecast:  { title: 'Price Forecast',            sub: 'Prophet model · 16-week horizon · External regressors' },
+  shortage:  { title: 'Shortage Predictor',        sub: 'Multi-signal composite risk scoring · 5 intelligence factors' },
+  geo:       { title: 'Geopolitical Intelligence', sub: 'Event feed · Country risk index · Supplier geo overlay' },
+  suppliers: { title: 'Supplier Risk Registry',    sub: 'XGBoost composite scoring · 4 risk dimensions' },
+  inventory: { title: 'Inventory Management',      sub: 'Safety stock · EOQ · Reorder point analysis' },
 }
 
-// ── Refresh button icon ───────────────────────────────────────────────────────
 function RefreshIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -53,14 +53,12 @@ function RefreshIcon() {
   )
 }
 
-// ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState('overview')
   const [apiStatus, setApiStatus] = useState('checking')
   const [refreshKey, setRefreshKey] = useState(0)
   const [spinning, setSpinning] = useState(false)
 
-  // Check API health on mount
   useEffect(() => {
     api.health()
       .then(h => setApiStatus(h.status === 'ok' ? 'online' : 'offline'))
@@ -76,7 +74,6 @@ export default function App() {
   const pageInfo = PAGE_TITLES[page] || PAGE_TITLES.overview
 
   const renderPage = () => {
-    // key={refreshKey} forces component remount on refresh
     const props = { key: refreshKey }
     switch (page) {
       case 'overview':  return <Overview {...props} />
@@ -120,13 +117,44 @@ export default function App() {
           ))}
         </nav>
 
+        {/* Ask PharmaFlow sidebar shortcut */}
+        <div style={{ padding: '0 12px 12px' }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: 'rgba(220,38,38,0.08)',
+              border: '1px solid rgba(239,68,68,0.18)',
+              cursor: 'pointer',
+              fontSize: 12, fontWeight: 500,
+              color: '#f87171',
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => {
+              // Trigger the floating chat by programmatically clicking the button
+              document.getElementById('ask-pharmaflow-trigger')?.click()
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.14)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
+          >
+            <span style={{ fontSize: 14 }}>✦</span>
+            Ask PharmaFlow AI
+          </div>
+        </div>
+
         <div className="sidebar-footer">
           <div className="api-status">
             <div className={`status-dot ${apiStatus !== 'online' ? 'offline' : ''}`} />
-            <span>API {apiStatus === 'online' ? '· v3.0.0' : apiStatus === 'checking' ? '· checking…' : '· offline'}</span>
+            <span>
+              API{' '}
+              {apiStatus === 'online' ? '· v4.0.0'
+                : apiStatus === 'checking' ? '· checking…'
+                : '· offline'}
+            </span>
           </div>
           <div style={{ marginTop: 8, fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
-            Phase 3 — Shortage + Geo Intelligence
+            Phase 7 — Ask PharmaFlow AI
           </div>
         </div>
       </aside>
@@ -139,6 +167,34 @@ export default function App() {
             <p>{pageInfo.sub}</p>
           </div>
           <div className="topbar-right">
+            {/* Ask PharmaFlow button in topbar */}
+            <button
+              id="ask-pharmaflow-trigger"
+              onClick={() => document.getElementById('ask-pharmaflow-fab')?.click()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 14px',
+                background: 'rgba(220,38,38,0.1)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                borderRadius: 8,
+                color: '#f87171',
+                fontSize: 12, fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                e.target.style.background = 'rgba(220,38,38,0.18)'
+                e.target.style.color = '#fff'
+              }}
+              onMouseLeave={e => {
+                e.target.style.background = 'rgba(220,38,38,0.1)'
+                e.target.style.color = '#f87171'
+              }}
+            >
+              ✦ Ask AI
+            </button>
+
             <button
               id="refresh-btn"
               className={`refresh-btn ${spinning ? 'spinning' : ''}`}
@@ -153,6 +209,9 @@ export default function App() {
           {renderPage()}
         </div>
       </main>
+
+      {/* ── Floating Ask PharmaFlow panel ── */}
+      <AskPharmaFlow fabId="ask-pharmaflow-fab" />
     </div>
   )
 }
