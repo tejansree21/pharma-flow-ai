@@ -1,64 +1,26 @@
-/**
- * PharmaFlow AI — Role-Based Auth Hook (Phase 9)
- *
- * Demo-mode auth: credentials are validated client-side against hardcoded
- * demo accounts. The backend's API key auth remains the real security layer.
- *
- * In production: replace DEMO_USERS with an SSO/OAuth integration
- * (Okta, Azure AD, Auth0) and validate JWT tokens on the backend.
- *
- * Demo credentials:
- *   cpo@pharmaflow.ai      / pharma123  → CPO (all access)
- *   pm@pharmaflow.ai       / pharma123  → Procurement Manager
- *   qa@pharmaflow.ai       / pharma123  → QA Lead
- *   buyer@pharmaflow.ai    / pharma123  → Buyer
- */
-
 import { useState, useEffect, createContext, useContext } from 'react'
 
-// ── Demo user database ────────────────────────────────────────────────────────
-
 const DEMO_USERS = {
-  'cpo@pharmaflow.ai': {
-    password: 'pharma123',
-    role:     'CPO',
-    name:     'Chief Procurement Officer',
-    initials: 'CP',
-  },
-  'pm@pharmaflow.ai': {
-    password: 'pharma123',
-    role:     'Procurement Manager',
-    name:     'Procurement Manager',
-    initials: 'PM',
-  },
-  'qa@pharmaflow.ai': {
-    password: 'pharma123',
-    role:     'QA Lead',
-    name:     'Quality Assurance Lead',
-    initials: 'QA',
-  },
-  'buyer@pharmaflow.ai': {
-    password: 'pharma123',
-    role:     'Buyer',
-    name:     'Buyer / Analyst',
-    initials: 'BY',
-  },
+  'cpo@pharmaflow.ai':    { password: 'pharma123', role: 'CPO',                  name: 'Chief Procurement Officer', initials: 'CP' },
+  'pm@pharmaflow.ai':     { password: 'pharma123', role: 'Procurement Manager',  name: 'Procurement Manager',       initials: 'PM' },
+  'qa@pharmaflow.ai':     { password: 'pharma123', role: 'QA Lead',              name: 'Quality Assurance Lead',    initials: 'QA' },
+  'buyer@pharmaflow.ai':  { password: 'pharma123', role: 'Buyer',                name: 'Buyer / Analyst',           initials: 'BY' },
 }
-
-// ── Role → allowed page IDs ───────────────────────────────────────────────────
 
 export const ROLE_PERMISSIONS = {
   'CPO': [
     'overview', 'forecast', 'shortage', 'geo', 'demand',
-    'suppliers', 'inventory', 'scenarios',
     'benchmark', 'counterfeit',
+    'suppliers', 'inventory', 'scenarios',
+    'supplychain', 'compliance', 'esg',
   ],
   'Procurement Manager': [
     'overview', 'forecast', 'shortage', 'geo', 'demand',
-    'suppliers', 'inventory', 'scenarios', 'benchmark',
+    'benchmark', 'suppliers', 'inventory', 'scenarios',
+    'supplychain',
   ],
   'QA Lead': [
-    'overview', 'suppliers', 'counterfeit',
+    'overview', 'suppliers', 'counterfeit', 'compliance',
   ],
   'Buyer': [
     'overview', 'forecast', 'inventory',
@@ -66,16 +28,12 @@ export const ROLE_PERMISSIONS = {
 }
 
 const STORAGE_KEY = 'pharmaflow_user'
-
-// ── Auth Context ──────────────────────────────────────────────────────────────
-
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [ready, setReady] = useState(false)
 
-  // Restore session from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
@@ -89,12 +47,7 @@ export function AuthProvider({ children }) {
     if (!demo || demo.password !== password) {
       throw new Error('Invalid email or password. Use the demo credentials shown below.')
     }
-    const userData = {
-      email:    email.toLowerCase().trim(),
-      role:     demo.role,
-      name:     demo.name,
-      initials: demo.initials,
-    }
+    const userData = { email: email.toLowerCase().trim(), role: demo.role, name: demo.name, initials: demo.initials }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
     setUser(userData)
     return userData
@@ -107,8 +60,7 @@ export function AuthProvider({ children }) {
 
   const hasAccess = (pageId) => {
     if (!user) return false
-    const allowed = ROLE_PERMISSIONS[user.role] || []
-    return allowed.includes(pageId)
+    return (ROLE_PERMISSIONS[user.role] || []).includes(pageId)
   }
 
   return (

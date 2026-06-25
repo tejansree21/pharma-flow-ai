@@ -1575,3 +1575,126 @@ async def counterfeit_risk():
         supplier_risks=supplier_risks,
         summary=summary,
     )
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 10: Supply Chain Map + Compliance + ESG Endpoints
+# Append to the bottom of src/api/main.py
+# ═════════════════════════════════════════════════════════════════════════════
+
+from .schemas import (
+    SupplyChainMapResponse, SupplyChainNode, SupplyChainEdge,
+    ConcentrationRisk, SupplyChainSummary,
+    ComplianceResponse, SupplierComplianceRecord, ComplianceFramework,
+    WarningLetter, ComplianceSummary, AuditReportResponse,
+    ESGResponse, ESGSupplierScore, ESGSummary,
+)
+
+
+@app.get("/intelligence/supply-chain-map", response_model=SupplyChainMapResponse, tags=["Intelligence"])
+async def supply_chain_map():
+    """
+    Build a 3-tier supply chain network map.
+    Returns nodes + edges for Tier 1 (direct suppliers), Tier 2 (chemical
+    manufacturers), and Tier 3 (feedstock sources), plus detected hidden
+    concentration risks where multiple Tier 1 suppliers share upstream sources.
+    """
+    from ..intelligence.supply_chain_mapper import SupplyChainMapper
+    mapper = SupplyChainMapper()
+    result = mapper.run()
+
+    nodes = [SupplyChainNode(**n) for n in result["network"]["nodes"]]
+    edges = [SupplyChainEdge(**e) for e in result["network"]["edges"]]
+    risks = [
+        ConcentrationRisk(
+            shared_node_id=r["shared_node_id"],
+            shared_node_name=r["shared_node_name"],
+            shared_node_country=r["shared_node_country"],
+            shared_node_tier=r["shared_node_tier"],
+            tier1_supplier_names=r["tier1_supplier_names"],
+            num_affected=r["num_affected"],
+            pct_of_portfolio=r["pct_of_portfolio"],
+            risk_level=r["risk_level"],
+            description=r["description"],
+        )
+        for r in result["concentration_risks"]
+    ]
+
+    return SupplyChainMapResponse(
+        nodes=nodes,
+        edges=edges,
+        concentration_risks=risks,
+        country_exposure=result["country_exposure"],
+        summary=SupplyChainSummary(**result["summary"]),
+    )
+
+
+@app.get("/compliance/overview", response_model=ComplianceResponse, tags=["Intelligence"])
+async def compliance_overview():
+    """
+    Regulatory compliance status for all suppliers.
+    Tracks FDA CGMP, EMA GMP, WHO Prequalification, ISO 9001, and ICH Q7
+    audit cycles, warning letter history, and overall compliance score.
+    """
+    from ..intelligence.regulatory_compliance import ComplianceEngine
+    engine = ComplianceEngine()
+    result = engine.run()
+
+    supplier_records = []
+    for s in result["suppliers"]:
+        frameworks = [ComplianceFramework(**f) for f in s["frameworks"]]
+        letters    = [WarningLetter(**wl) for wl in s["warning_letters"]]
+        supplier_records.append(SupplierComplianceRecord(
+            supplier_id=s["supplier_id"],
+            supplier_name=s["supplier_name"],
+            country=s["country"],
+            fda_approved=s["fda_approved"],
+            risk_tier=s["risk_tier"],
+            compliance_score=s["compliance_score"],
+            overall_status=s["overall_status"],
+            frameworks=frameworks,
+            warning_letters=letters,
+            active_warnings=s["active_warnings"],
+            total_warnings=s["total_warnings"],
+            next_audit_due=s["next_audit_due"],
+            overdue_frameworks=s["overdue_frameworks"],
+        ))
+
+    return ComplianceResponse(
+        suppliers=supplier_records,
+        summary=ComplianceSummary(**result["summary"]),
+    )
+
+
+@app.get("/compliance/audit-report/{supplier_id}", response_model=AuditReportResponse, tags=["Intelligence"])
+async def audit_report(supplier_id: str):
+    """
+    Generate a plain-text audit compliance report for a specific supplier.
+    Suitable for use in procurement audit documentation.
+    """
+    from ..intelligence.regulatory_compliance import ComplianceEngine
+    engine = ComplianceEngine()
+    result = engine.generate_audit_report(supplier_id)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return AuditReportResponse(**result)
+
+
+@app.get("/intelligence/esg-scores", response_model=ESGResponse, tags=["Intelligence"])
+async def esg_scores():
+    """
+    ESG scoring and Scope 3 carbon emissions estimation for all suppliers.
+    Environmental (0–40) + Social (0–30) + Governance (0–30) = total 0–100.
+    Scope 3 emissions estimate covers shipping + manufacturing per supplier.
+    """
+    from ..intelligence.esg_scorer import ESGScorer
+    scorer = ESGScorer()
+    result = scorer.run()
+
+    supplier_scores = [ESGSupplierScore(**s) for s in result["supplier_scores"]]
+    top_emitters    = [ESGSupplierScore(**s) for s in result["top_emitters"]]
+
+    return ESGResponse(
+        supplier_scores=supplier_scores,
+        top_emitters=top_emitters,
+        summary=ESGSummary(**result["summary"]),
+    )

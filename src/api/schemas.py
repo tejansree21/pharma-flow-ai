@@ -466,3 +466,143 @@ class CounterfeitRiskSummary(BaseModel):
 class CounterfeitRiskResponse(BaseModel):
     supplier_risks: List[CounterfeitRiskEntry]
     summary: CounterfeitRiskSummary
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 10: Supply Chain Map + Compliance + ESG Schemas
+# Append to the bottom of src/api/schemas.py
+# ═════════════════════════════════════════════════════════════════════════════
+
+class SupplyChainNode(BaseModel):
+    id: str
+    label: str
+    tier: int
+    type: str
+    country: Optional[str] = None
+    risk_score: Optional[float] = None
+    fda_approved: Optional[bool] = None
+    specialty: Optional[str] = None
+    material: Optional[str] = None
+
+class SupplyChainEdge(BaseModel):
+    source: str
+    target: str
+    tier: int
+
+class ConcentrationRisk(BaseModel):
+    shared_node_id: str
+    shared_node_name: str
+    shared_node_country: str
+    shared_node_tier: int
+    tier1_supplier_names: List[str]
+    num_affected: int
+    pct_of_portfolio: float
+    risk_level: str
+    description: str
+
+class SupplyChainSummary(BaseModel):
+    tier1_suppliers: int
+    tier2_manufacturers: int
+    tier3_feedstock: int
+    total_nodes: int
+    total_edges: int
+    concentration_risks: int
+    critical_risks: int
+    high_risks: int
+    countries_exposed: int
+    highest_exposure_country: str
+
+class SupplyChainMapResponse(BaseModel):
+    nodes: List[SupplyChainNode]
+    edges: List[SupplyChainEdge]
+    concentration_risks: List[ConcentrationRisk]
+    country_exposure: List[dict]
+    summary: SupplyChainSummary
+
+class ComplianceFramework(BaseModel):
+    framework: str
+    full_name: str
+    status: str
+    urgency: str
+    last_audit: str
+    next_due: str
+    days_since_audit: int
+    days_until_due: int
+    approved: bool
+
+class WarningLetter(BaseModel):
+    date: str
+    type: str
+    resolved: bool
+    days_ago: int
+
+class SupplierComplianceRecord(BaseModel):
+    supplier_id: str
+    supplier_name: str
+    country: str
+    fda_approved: bool
+    risk_tier: str
+    compliance_score: float
+    overall_status: str
+    frameworks: List[ComplianceFramework]
+    warning_letters: List[WarningLetter]
+    active_warnings: int
+    total_warnings: int
+    next_audit_due: str
+    overdue_frameworks: List[str]
+
+class ComplianceSummary(BaseModel):
+    total_suppliers: int
+    compliant: int
+    at_risk: int
+    non_compliant: int
+    total_active_warnings: int
+    suppliers_with_overdue: int
+    avg_compliance_score: float
+    lowest_compliance_supplier: str
+
+class ComplianceResponse(BaseModel):
+    suppliers: List[SupplierComplianceRecord]
+    summary: ComplianceSummary
+
+class AuditReportResponse(BaseModel):
+    supplier_id: str
+    supplier_name: str
+    report_date: str
+    report_text: str
+    compliance_score: float
+    overall_status: str
+
+class ESGSupplierScore(BaseModel):
+    supplier_id: str
+    supplier_name: str
+    country: str
+    fda_approved: bool
+    risk_tier: str
+    esg_total_score: float
+    esg_tier: str
+    environmental_score: float
+    social_score: float
+    governance_score: float
+    scope3_kg_co2: float
+    annual_volume_kg: float
+    distance_km: int
+    primary_transport: str
+    shipping_co2_pct: float
+    key_esg_risk: str
+
+class ESGSummary(BaseModel):
+    total_suppliers: int
+    tier_a: int
+    tier_b: int
+    tier_c: int
+    tier_d: int
+    avg_esg_score: float
+    total_scope3_kg_co2: float
+    total_scope3_tonnes_co2: float
+    highest_esg_supplier: str
+    lowest_esg_supplier: str
+    top_emitter: str
+
+class ESGResponse(BaseModel):
+    supplier_scores: List[ESGSupplierScore]
+    top_emitters: List[ESGSupplierScore]
+    summary: ESGSummary
