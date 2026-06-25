@@ -382,3 +382,87 @@ class SimulationResponse(BaseModel):
     impact_level: str
     drug_impacts: List[SimulationDrugImpact]
     recommendation: str
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 9: Benchmarking + Counterfeit Detection Schemas
+# ═════════════════════════════════════════════════════════════════════════════
+
+class DrugPriceBenchmark(BaseModel):
+    drug_id: str
+    drug_name: str
+    category: str
+    criticality: str
+    our_price: float
+    market_p25: float
+    market_median: float
+    market_p75: float
+    market_p10: float
+    market_p90: float
+    percentile_rank: float
+    savings_per_kg: float
+    monthly_demand_kg: float
+    monthly_savings_opportunity: float
+    position: str  # BELOW_MARKET / AT_MARKET / ABOVE_MARKET / SIGNIFICANTLY_ABOVE
+
+
+class SupplierQualityBenchmark(BaseModel):
+    supplier_id: str
+    supplier_name: str
+    country: str
+    fda_approved: bool
+    our_quality_rate: float
+    industry_benchmark: float
+    quality_delta: float
+    quality_rating: str  # ABOVE_BENCHMARK / AT_BENCHMARK / BELOW_BENCHMARK
+    batches_analyzed: int
+    anomalies_detected: int
+
+
+class BenchmarkSummary(BaseModel):
+    total_drugs_benchmarked: int
+    drugs_above_market: int
+    drugs_at_market: int
+    drugs_below_market: int
+    total_monthly_savings_opportunity: float
+    avg_price_percentile: float
+    suppliers_below_quality_benchmark: int
+    industry_avg_quality_pct: float
+
+
+class BenchmarkResponse(BaseModel):
+    price_benchmarks: List[DrugPriceBenchmark]
+    quality_benchmarks: List[SupplierQualityBenchmark]
+    summary: BenchmarkSummary
+
+
+class CounterfeitRiskEntry(BaseModel):
+    supplier_id: str
+    supplier_name: str
+    country: str
+    fda_approved: bool
+    counterfeit_risk_score: float
+    risk_tier: str   # LOW / MEDIUM / HIGH / CRITICAL
+    price_anomaly_score: float
+    quality_drift_score: float
+    regulatory_risk_score: float
+    incident_risk_score: float
+    price_anomaly_detail: str
+    quality_drift_detail: str
+    regulatory_detail: str
+    incident_detail: str
+    top_concern: str
+    recommendation: str
+
+
+class CounterfeitRiskSummary(BaseModel):
+    total_suppliers: int
+    critical_risk: int
+    high_risk: int
+    medium_risk: int
+    low_risk: int
+    highest_risk_supplier: str
+
+
+class CounterfeitRiskResponse(BaseModel):
+    supplier_risks: List[CounterfeitRiskEntry]
+    summary: CounterfeitRiskSummary

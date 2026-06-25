@@ -1508,3 +1508,70 @@ async def demand_forecast():
     from ..intelligence.demand_forecasting import DemandForecaster
     df = DemandForecaster()
     return df.run()
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 9: Benchmarking + Counterfeit Detection Endpoints
+# ═════════════════════════════════════════════════════════════════════════════
+#
+# Append this entire block to the bottom of src/api/main.py
+# Also import these schemas at the top of main.py (add to the existing import):
+#   from .schemas import (
+#       BenchmarkResponse, DrugPriceBenchmark, SupplierQualityBenchmark,
+#       BenchmarkSummary, CounterfeitRiskResponse, CounterfeitRiskEntry,
+#       CounterfeitRiskSummary,
+#   )
+# ═════════════════════════════════════════════════════════════════════════════
+
+from .schemas import (
+    BenchmarkResponse,
+    DrugPriceBenchmark,
+    SupplierQualityBenchmark,
+    BenchmarkSummary,
+    CounterfeitRiskResponse,
+    CounterfeitRiskEntry,
+    CounterfeitRiskSummary,
+)
+
+
+@app.get("/benchmark/overview", response_model=BenchmarkResponse, tags=["Intelligence"])
+async def benchmark_overview():
+    """
+    Compare our drug prices and supplier quality rates against market benchmarks.
+    Returns per-drug price percentile rankings, savings opportunities,
+    and per-supplier quality pass rate vs industry standard.
+    """
+    from ..intelligence.benchmarking import BenchmarkEngine
+    eng = BenchmarkEngine()
+    result = eng.run()
+
+    price_bm = [DrugPriceBenchmark(**d) for d in result["price_benchmarks"]]
+    quality_bm = [SupplierQualityBenchmark(**s) for s in result["quality_benchmarks"]]
+    summary = BenchmarkSummary(**result["summary"])
+
+    return BenchmarkResponse(
+        price_benchmarks=price_bm,
+        quality_benchmarks=quality_bm,
+        summary=summary,
+    )
+
+
+@app.get("/intelligence/counterfeit-risk", response_model=CounterfeitRiskResponse, tags=["Intelligence"])
+async def counterfeit_risk():
+    """
+    Score every supplier on counterfeit / grey-market risk using four signals:
+    price anomaly, quality drift, regulatory posture, and incident history.
+
+    IMPORTANT: High scores indicate risk signals warranting investigation —
+    not confirmed counterfeit activity. Always verify via laboratory testing.
+    """
+    from ..intelligence.counterfeit_detector import CounterfeitDetector
+    cd = CounterfeitDetector()
+    result = cd.score_all()
+
+    supplier_risks = [CounterfeitRiskEntry(**r) for r in result["supplier_risks"]]
+    summary = CounterfeitRiskSummary(**result["summary"])
+
+    return CounterfeitRiskResponse(
+        supplier_risks=supplier_risks,
+        summary=summary,
+    )
