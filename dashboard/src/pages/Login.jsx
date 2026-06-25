@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../useAuth'
+import { useAuth } from '../useAuth.jsx'
 
 const DEMO_CREDENTIALS = [
   { email: 'cpo@pharmaflow.ai',   role: 'CPO',                 access: 'All modules' },

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from './api'
-import { AuthProvider, useAuth, ROLE_PERMISSIONS } from './useAuth'
+import { AuthProvider, useAuth, ROLE_PERMISSIONS } from './useAuth.jsx'
 import Login from './pages/Login'
 import Overview from './pages/Overview'
 import PriceForecast from './pages/PriceForecast'
