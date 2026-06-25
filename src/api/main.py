@@ -1141,3 +1141,370 @@ async def chat(req: ChatRequest):
         intents=intents,
         model=ANTHROPIC_MODEL,
     )
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 8: Simulation Endpoints + Demand Forecasting
+# ═════════════════════════════════════════════════════════════════════════════
+#
+# Append this entire block to the bottom of src/api/main.py
+# Also import these schemas at the top of main.py:
+#   from .schemas import (
+#       SupplierOfflineRequest, DemandShockRequest, PriceSpikeRequest,
+#       SimulationResponse, SimulationDrugImpact,
+#   )
+# ═════════════════════════════════════════════════════════════════════════════
+
+import json as _json
+
+from .schemas import (
+    SupplierOfflineRequest,
+    DemandShockRequest,
+    PriceSpikeRequest,
+    SimulationResponse,
+    SimulationDrugImpact,
+)
+
+# ── Simulation helpers ────────────────────────────────────────────────────────
+
+def _get_approved_map() -> dict:
+    """Return {drug_id: [supplier_id, ...]} from drugs.csv."""
+    drugs = _cache["drugs"]
+    result = {}
+    for _, row in drugs.iterrows():
+        try:
+            result[row["id"]] = _json.loads(row.get("approved_suppliers", "[]"))
+        except Exception:
+            result[row["id"]] = []
+    return result
+
+
+def _get_latest_prices() -> dict:
+    """Return {drug_id: price_per_kg} from cached forecasts."""
+    fc = _cache["forecasts"].sort_values("ds")
+    return (
+        fc.groupby("drug_id")["yhat"]
+        .last()
+        .clip(lower=1)
+        .to_dict()
+    )
+
+
+def _get_risk_lookup() -> dict:
+    """Return {supplier_id: risk_score} from cached risk scores."""
+    risk = _cache["risk_scores"]
+    return dict(zip(risk["supplier_id"], risk["risk_score"]))
+
+
+def _supplier_name(supplier_id: str) -> str:
+    sups = _cache["suppliers"]
+    row = sups[sups["id"] == supplier_id]
+    return str(row["name"].iloc[0]) if not row.empty else supplier_id
+
+
+def _drug_name(drug_id: str) -> str:
+    drugs = _cache["drugs"]
+    row = drugs[drugs["id"] == drug_id]
+    return str(row["name"].iloc[0]) if not row.empty else drug_id
+
+
+def _impact_level(delta_pct: float) -> str:
+    if abs(delta_pct) >= 30: return "CRITICAL"
+    if abs(delta_pct) >= 15: return "HIGH"
+    if abs(delta_pct) >= 5:  return "MEDIUM"
+    return "LOW"
+
+
+def _get_baseline_demand() -> dict:
+    """Compute monthly demand per drug from purchase history."""
+    try:
+        ph = _cache.get("purchase_history")
+        if ph is None:
+            ph = pd.read_csv(SYNTHETIC / "purchase_history.csv")
+            _cache["purchase_history"] = ph
+        avg = ph.groupby("drug_id")["quantity_kg"].mean()
+        return (avg * 4).round().to_dict()
+    except Exception:
+        # Fallback: use base price as proxy for relative demand
+        drugs = _cache["drugs"]
+        return {row["id"]: 500.0 for _, row in drugs.iterrows()}
+
+
+def _cheapest_supplier(drug_id: str, excluded_ids: set, prices: dict, risk_lookup: dict) -> tuple:
+    """Return (supplier_id, supplier_name, effective_price) for cheapest available supplier."""
+    approved = _get_approved_map().get(drug_id, [])
+    available = [s for s in approved if s not in excluded_ids]
+    if not available:
+        return None, "NONE", float("inf")
+    price = prices.get(drug_id, 50.0)
+    risk_weight = 0.8
+    scored = [(s, price + risk_weight * risk_lookup.get(s, 50.0)) for s in available]
+    best_id, best_price = min(scored, key=lambda x: x[1])
+    return best_id, _supplier_name(best_id), best_price
+
+
+# ── Simulation 1: Supplier Offline ────────────────────────────────────────────
+
+@app.post("/simulate/supplier-offline", response_model=SimulationResponse, tags=["Intelligence"])
+async def simulate_supplier_offline(req: SupplierOfflineRequest):
+    """
+    Simulate removing a supplier from the supply chain.
+    Shows which drugs are affected, cost delta, and whether demand can be met.
+    """
+    prices     = _get_latest_prices()
+    risk       = _get_risk_lookup()
+    demand     = _get_baseline_demand()
+    approved   = _get_approved_map()
+    drugs_df   = _cache["drugs"]
+    excluded   = {req.supplier_id}
+    sup_name   = _supplier_name(req.supplier_id)
+
+    # Find which drugs this supplier supplies
+    affected_drug_ids = [
+        d_id for d_id, sups in approved.items()
+        if req.supplier_id in sups
+    ]
+    if req.drug_ids:
+        affected_drug_ids = [d for d in affected_drug_ids if d in req.drug_ids]
+
+    if not affected_drug_ids:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Supplier {req.supplier_id} is not approved for any drugs in the formulary."
+        )
+
+    drug_impacts = []
+    baseline_total = 0.0
+    simulated_total = 0.0
+
+    for d_id in affected_drug_ids:
+        d_name = _drug_name(d_id)
+        price = prices.get(d_id, 50.0)
+        dem = demand.get(d_id, 500.0)
+
+        # Baseline cost: assume we sourced 40% from this supplier (avg concentration)
+        fraction_from_offline = 0.40
+        qty_from_offline = dem * fraction_from_offline
+        baseline_cost = dem * price
+        baseline_total += baseline_cost
+
+        # Simulate: find next best supplier
+        alt_id, alt_name, alt_eff_price = _cheapest_supplier(d_id, excluded, prices, risk)
+        can_fulfill = alt_id is not None
+        sim_cost = (dem * price * (1 - fraction_from_offline)) + \
+                   (qty_from_offline * (alt_eff_price if can_fulfill else price * 2.0))
+        simulated_total += sim_cost
+
+        delta_usd = sim_cost - baseline_cost
+        delta_pct = (delta_usd / max(baseline_cost, 1)) * 100
+
+        drug_impacts.append(SimulationDrugImpact(
+            drug_id=d_id,
+            drug_name=d_name,
+            baseline_cost_usd=round(baseline_cost, 2),
+            simulated_cost_usd=round(sim_cost, 2),
+            cost_delta_usd=round(delta_usd, 2),
+            cost_delta_pct=round(delta_pct, 1),
+            baseline_supplier=sup_name,
+            simulated_supplier=alt_name,
+            can_fulfill=can_fulfill,
+            impact_level=_impact_level(delta_pct) if can_fulfill else "CRITICAL",
+        ))
+
+    drug_impacts.sort(key=lambda x: abs(x.cost_delta_usd), reverse=True)
+    total_delta = simulated_total - baseline_total
+    total_delta_pct = (total_delta / max(baseline_total, 1)) * 100
+    unfulfillable = sum(1 for d in drug_impacts if not d.can_fulfill)
+
+    if unfulfillable > 0:
+        rec = f"CRITICAL: {unfulfillable} drug(s) have NO alternative supplier if {sup_name} goes offline. Qualify backup suppliers immediately."
+    elif total_delta_pct > 20:
+        rec = f"HIGH RISK: Losing {sup_name} increases spend by {total_delta_pct:.1f}%. Develop 2nd-source suppliers for affected drugs."
+    else:
+        rec = f"Supply chain is resilient to {sup_name} going offline. Cost increases by {total_delta_pct:.1f}% — within acceptable range."
+
+    return SimulationResponse(
+        simulation_type="supplier_offline",
+        scenario_description=f"Simulate {sup_name} ({req.supplier_id}) going offline",
+        baseline_total_cost_usd=round(baseline_total, 2),
+        simulated_total_cost_usd=round(simulated_total, 2),
+        total_cost_delta_usd=round(total_delta, 2),
+        total_cost_delta_pct=round(total_delta_pct, 1),
+        drugs_affected=len(drug_impacts),
+        drugs_unfulfillable=unfulfillable,
+        impact_level=_impact_level(total_delta_pct) if unfulfillable == 0 else "CRITICAL",
+        drug_impacts=drug_impacts,
+        recommendation=rec,
+    )
+
+
+# ── Simulation 2: Demand Shock ────────────────────────────────────────────────
+
+@app.post("/simulate/demand-shock", response_model=SimulationResponse, tags=["Intelligence"])
+async def simulate_demand_shock(req: DemandShockRequest):
+    """
+    Simulate a sudden demand surge for a specific drug.
+    Shows cost impact and whether current suppliers can fulfill increased demand.
+    """
+    prices   = _get_latest_prices()
+    risk     = _get_risk_lookup()
+    demand   = _get_baseline_demand()
+    approved = _get_approved_map()
+
+    d_id   = req.drug_id
+    d_name = _drug_name(d_id)
+    price  = prices.get(d_id, 50.0)
+    base_demand = demand.get(d_id, 500.0)
+    shocked_demand = base_demand * req.multiplier
+
+    baseline_cost  = base_demand * price
+    simulated_cost = shocked_demand * price  # same price initially
+    delta_usd = simulated_cost - baseline_cost
+    delta_pct = (delta_usd / max(baseline_cost, 1)) * 100
+
+    # Check if approved suppliers can cover the surge
+    approved_sups = approved.get(d_id, [])
+    can_cover = len(approved_sups) >= 2  # need multiple sources for large surge
+
+    if req.multiplier > 3 and not can_cover:
+        impact = "CRITICAL"
+        rec = f"CRITICAL: {req.multiplier:.1f}× demand surge for {d_name} cannot be met from current {len(approved_sups)} supplier(s). Qualify emergency backup suppliers and consider alternative therapeutics."
+    elif req.multiplier > 2:
+        impact = "HIGH"
+        rec = f"HIGH: {req.multiplier:.1f}× demand surge for {d_name} increases cost by ${delta_usd:,.0f}. Activate all {len(approved_sups)} approved suppliers and negotiate expedited delivery."
+    else:
+        impact = "MEDIUM"
+        rec = f"MEDIUM: {req.multiplier:.1f}× demand surge adds ${delta_usd:,.0f} to {d_name} spend. Increase safety stock by {int((req.multiplier - 1) * 100)}% as a precaution."
+
+    return SimulationResponse(
+        simulation_type="demand_shock",
+        scenario_description=f"Demand for {d_name} increases {req.multiplier:.1f}× (from {base_demand:.0f}kg to {shocked_demand:.0f}kg)",
+        baseline_total_cost_usd=round(baseline_cost, 2),
+        simulated_total_cost_usd=round(simulated_cost, 2),
+        total_cost_delta_usd=round(delta_usd, 2),
+        total_cost_delta_pct=round(delta_pct, 1),
+        drugs_affected=1,
+        drugs_unfulfillable=0 if can_cover else 1,
+        impact_level=impact,
+        drug_impacts=[
+            SimulationDrugImpact(
+                drug_id=d_id,
+                drug_name=d_name,
+                baseline_cost_usd=round(baseline_cost, 2),
+                simulated_cost_usd=round(simulated_cost, 2),
+                cost_delta_usd=round(delta_usd, 2),
+                cost_delta_pct=round(delta_pct, 1),
+                baseline_supplier=f"{len(approved_sups)} approved suppliers",
+                simulated_supplier=f"{len(approved_sups)} suppliers at {req.multiplier:.1f}× capacity",
+                can_fulfill=can_cover,
+                impact_level=impact,
+            )
+        ],
+        recommendation=rec,
+    )
+
+
+# ── Simulation 3: Price Spike ─────────────────────────────────────────────────
+
+@app.post("/simulate/price-spike", response_model=SimulationResponse, tags=["Intelligence"])
+async def simulate_price_spike(req: PriceSpikeRequest):
+    """
+    Simulate a price increase from specific suppliers (or top-3 highest risk).
+    Shows total spend impact across all affected drugs.
+    """
+    prices   = _get_latest_prices()
+    risk     = _get_risk_lookup()
+    demand   = _get_baseline_demand()
+    approved = _get_approved_map()
+    drugs_df = _cache["drugs"]
+    risk_df  = _cache["risk_scores"]
+
+    # Determine which suppliers get the price spike
+    if req.supplier_ids:
+        spiked = set(req.supplier_ids)
+    else:
+        top3 = risk_df.nlargest(3, "risk_score")["supplier_id"].tolist()
+        spiked = set(top3)
+
+    spiked_names = [_supplier_name(s) for s in spiked]
+
+    drug_impacts = []
+    baseline_total = 0.0
+    simulated_total = 0.0
+
+    for _, drug in drugs_df.iterrows():
+        d_id   = drug["id"]
+        d_name = drug["name"]
+        price  = prices.get(d_id, 50.0)
+        dem    = demand.get(d_id, 500.0)
+        app_sups = approved.get(d_id, [])
+
+        # What fraction of this drug comes from spiked suppliers
+        spiked_for_drug = [s for s in app_sups if s in spiked]
+        if not spiked_for_drug:
+            continue  # drug not sourced from spiked suppliers
+
+        frac_spiked = len(spiked_for_drug) / max(len(app_sups), 1)
+        # Assume proportional allocation
+        baseline_cost  = dem * price
+        spiked_portion = dem * frac_spiked
+        new_price = price * req.price_multiplier
+        simulated_cost = (
+            (dem - spiked_portion) * price +
+            spiked_portion * new_price
+        )
+
+        baseline_total  += baseline_cost
+        simulated_total += simulated_cost
+        delta_usd = simulated_cost - baseline_cost
+        delta_pct = (delta_usd / max(baseline_cost, 1)) * 100
+
+        drug_impacts.append(SimulationDrugImpact(
+            drug_id=d_id,
+            drug_name=d_name,
+            baseline_cost_usd=round(baseline_cost, 2),
+            simulated_cost_usd=round(simulated_cost, 2),
+            cost_delta_usd=round(delta_usd, 2),
+            cost_delta_pct=round(delta_pct, 1),
+            baseline_supplier=", ".join(spiked_names[:2]),
+            simulated_supplier=f"+{int((req.price_multiplier - 1) * 100)}% price",
+            can_fulfill=True,
+            impact_level=_impact_level(delta_pct),
+        ))
+
+    drug_impacts.sort(key=lambda x: x.cost_delta_usd, reverse=True)
+
+    total_delta = simulated_total - baseline_total
+    total_delta_pct = (total_delta / max(baseline_total, 1)) * 100
+    pct_increase = int((req.price_multiplier - 1) * 100)
+    sup_names_str = ", ".join(spiked_names[:3])
+
+    if total_delta_pct > 15:
+        rec = f"HIGH IMPACT: A {pct_increase}% price spike from {sup_names_str} adds ${total_delta:,.0f} to spend. Consider forward buying before price increase takes effect and diversify away from these suppliers."
+    else:
+        rec = f"MANAGEABLE: A {pct_increase}% price spike from {sup_names_str} adds ${total_delta:,.0f} ({total_delta_pct:.1f}%) to total spend. Within acceptable variance — monitor supplier pricing monthly."
+
+    return SimulationResponse(
+        simulation_type="price_spike",
+        scenario_description=f"Suppliers {sup_names_str} raise prices by {pct_increase}%",
+        baseline_total_cost_usd=round(baseline_total, 2),
+        simulated_total_cost_usd=round(simulated_total, 2),
+        total_cost_delta_usd=round(total_delta, 2),
+        total_cost_delta_pct=round(total_delta_pct, 1),
+        drugs_affected=len(drug_impacts),
+        drugs_unfulfillable=0,
+        impact_level=_impact_level(total_delta_pct),
+        drug_impacts=drug_impacts,
+        recommendation=rec,
+    )
+
+
+# ── Demand Forecasting ────────────────────────────────────────────────────────
+
+@app.get("/intelligence/demand-forecast", tags=["Intelligence"])
+async def demand_forecast():
+    """
+    Epidemiology-driven demand forecasting.
+    Pulls WHO DONS outbreak alerts + CDC ILI surveillance and maps to drug demand signals.
+    """
+    from ..intelligence.demand_forecasting import DemandForecaster
+    df = DemandForecaster()
+    return df.run()

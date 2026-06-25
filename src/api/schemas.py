@@ -331,3 +331,54 @@ class ChatResponse(BaseModel):
         description="Detected intent categories.",
     )
     model: str = "claude-sonnet-4-6"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 8: Simulation Schemas
+# ═════════════════════════════════════════════════════════════════════════════
+
+class SupplierOfflineRequest(BaseModel):
+    supplier_id: str = Field(..., description="Supplier to remove from simulation")
+    drug_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Specific drugs to check. If omitted, checks all affected drugs.",
+    )
+
+
+class DemandShockRequest(BaseModel):
+    drug_id: str = Field(..., description="Drug experiencing demand surge")
+    multiplier: float = Field(default=2.0, ge=1.1, le=10.0, description="Demand multiplier (e.g. 2.0 = double)")
+
+
+class PriceSpikeRequest(BaseModel):
+    supplier_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Specific supplier IDs. If omitted, applies to top 3 highest-risk suppliers.",
+    )
+    price_multiplier: float = Field(default=1.2, ge=1.0, le=5.0, description="Price increase multiplier (e.g. 1.2 = +20%)")
+
+
+class SimulationDrugImpact(BaseModel):
+    drug_id: str
+    drug_name: str
+    baseline_cost_usd: float
+    simulated_cost_usd: float
+    cost_delta_usd: float
+    cost_delta_pct: float
+    baseline_supplier: str
+    simulated_supplier: str
+    can_fulfill: bool
+    impact_level: str  # LOW / MEDIUM / HIGH / CRITICAL
+
+
+class SimulationResponse(BaseModel):
+    simulation_type: str
+    scenario_description: str
+    baseline_total_cost_usd: float
+    simulated_total_cost_usd: float
+    total_cost_delta_usd: float
+    total_cost_delta_pct: float
+    drugs_affected: int
+    drugs_unfulfillable: int
+    impact_level: str
+    drug_impacts: List[SimulationDrugImpact]
+    recommendation: str
